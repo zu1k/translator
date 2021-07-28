@@ -1,0 +1,106 @@
+{
+    "jsonrpc": "2.0",
+    "method": "LMT_handle_jobs",
+    "params": {
+        "jobs": [{
+            "kind": "default",
+            "raw_en_sentence": "apple",
+            "raw_en_context_before": [],
+            "raw_en_context_after": [],
+            "preferred_num_beams": 4
+        }],
+        "lang": {
+            "preference": {
+                "weight": {},
+                "default": "default"
+            },
+            "source_lang_computed": "EN",
+            "target_lang": "ZH"
+        },
+        "priority": 1,
+        "commonJobParams": {
+            "formality": null
+        },
+        "timestamp": 1627425029333
+    },
+    "id": 65360005
+}
+
+{
+    "jsonrpc": "2.0",
+    "method": "LMT_handle_jobs",
+    "params": {
+        "jobs": [{
+            "kind": "default",
+            "raw_en_sentence": "Русский язык",
+            "raw_en_context_before": [],
+            "raw_en_context_after": [],
+            "preferred_num_beams": 4
+        }],
+        "lang": {
+            "preference": {
+                "weight": {
+                    "DE": 1.22426,
+                    "EN": 3.10407,
+                    "ES": 0.15229,
+                    "FR": 0.20175,
+                    "IT": 0.17768,
+                    "JA": 0.07256,
+                    "NL": 0.17048,
+                    "PL": 0.08664,
+                    "PT": 0.05555,
+                    "RU": 0.04501,
+                    "ZH": 0.34707,
+                    "BG": 0.02465,
+                    "CS": 0.04497,
+                    "DA": 0.05542,
+                    "EL": 0.01946,
+                    "ET": 0.05413,
+                    "FI": 0.04934,
+                    "HU": 0.04601,
+                    "LT": 0.03201,
+                    "LV": 0.0336,
+                    "RO": 0.03271,
+                    "SK": 0.03515,
+                    "SL": 0.03147,
+                    "SV": 0.06734
+                },
+                "default": "default"
+            },
+            "source_lang_user_selected": "DE",
+            "target_lang": "ZH"
+        },
+        "priority": 1,
+        "commonJobParams": {
+            "formality": null
+        },
+        "timestamp": 1627427400314
+    },
+    "id": 90230003
+}
+
+{
+    "jsonrpc": "2.0",
+    "method": "LMT_handle_jobs",
+    "params": {
+        "jobs": [{
+            "kind": "default",
+            "raw_en_sentence": "Русский язык",
+            "raw_en_context_before": [],
+            "raw_en_context_after": [],
+            "preferred_num_beams": 4
+        }],
+        "lang": {
+            "preference": {
+                "weight": {},
+                "default": "default"
+            },
+            "source_lang_computed": "DE",
+            "target_lang": "ZH"
+        },
+        "priority": 1,
+        "commonJobParams": {},
+        "timestamp": 1627428131447
+    },
+    "id": 90230010
+}
