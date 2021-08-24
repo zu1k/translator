@@ -6,7 +6,16 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-deepl-api = "0.2"
-google-translate3 = "2.0.4+20210312"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+cli-clipboard = "0.2" # a fork version of cliboard, add wayland support
+egui = { path = "./egui/egui" }
+egui_glium = { path = "./egui/egui_glium" }
+eframe = { path = "./egui/eframe" }
+glium = "0.30"
+piet-common = "0.4.1"
+online-api = { path = "./deepl-rs/online-api" }
+tauri-hotkey = "0.1.2"
+copypasta = "0.7.1"
+enigo = { git = "https://github.com/enigo-rs/enigo" }
+
+[target.'cfg(target_os="windows")'.build-dependencies]
+winres = "0.1"
