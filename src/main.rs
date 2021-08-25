@@ -54,7 +54,7 @@ fn main() {
                 let native_options = eframe::NativeOptions {
                     always_on_top: true,
                     decorated: false,
-                    initial_window_size: Some(egui::vec2(500.0, 100.0)),
+                    initial_window_size: Some(egui::vec2(500.0, 190.0)),
                     ..Default::default()
                 };
                 eframe::run_native_return(app, native_options);

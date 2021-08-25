@@ -52,54 +52,58 @@ impl epi::App for MyApp {
 
         let len = text.len();
         println!("{}", len);
-        // let width = if len<400 {
-        //     800.0
-        // } else if len<1000 {
-        //     1000.0
-        // }  else if len<2000 {
-        //     1600.0
-        // } else {
-        //     2000.0
-        // };
-        let width = 600.0;
+        let width = if len<400 {
+            500.0
+        } else if len<1000 {
+            600.0
+        }  else if len<2000 {
+            800.0
+        } else {
+            1000.0
+        };
 
         println!("{}", width);
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                egui::ComboBox::from_id_source(egui::Id::new("source_lang_ComboBox"))
-                    .selected_text(source_lang.description())
+            ui.vertical(|ui| {
+                ui.horizontal(|ui| {
+                    egui::ComboBox::from_id_source(egui::Id::new("source_lang_ComboBox"))
+                        .selected_text(source_lang.description())
+                        .show_ui(ui, |ui| {
+                            for i in lang_list_with_auto {
+                                let i = i.to_owned();
+                                ui.selectable_value(source_lang, i, i.description());
+                            }
+                        });
+                    if ui.add(egui::Button::new("交换")).clicked() {
+                        let tmp_target_lang = target_lang.clone();
+                        *target_lang = source_lang.clone();
+                        *source_lang = tmp_target_lang;
+                    };
+                    egui::ComboBox::from_id_source(egui::Id::new("target_lang_ComboBox"))
+                    .selected_text(target_lang.description())
                     .show_ui(ui, |ui| {
-                        for i in lang_list_with_auto {
+                        for i in lang_list {
                             let i = i.to_owned();
-                            ui.selectable_value(source_lang, i, i.description());
+                            ui.selectable_value(target_lang, i, i.description());
                         }
                     });
-                if ui.add(egui::Button::new("交换")).clicked() {
-                    let tmp_target_lang = target_lang.clone();
-                    *target_lang = source_lang.clone();
-                    *source_lang = tmp_target_lang;
-                };
-                egui::ComboBox::from_id_source(egui::Id::new("target_lang_ComboBox"))
-                .selected_text(target_lang.description())
-                .show_ui(ui, |ui| {
-                    for i in lang_list {
-                        let i = i.to_owned();
-                        ui.selectable_value(target_lang, i, i.description());
-                    }
+    
+                    if source_lang.clone()!=old_source_lang || target_lang.clone()!=old_target_lang {
+                        let _ = task_chan.send((text.clone(), target_lang.clone(), source_lang.clone()));
+                    };          
                 });
-
-                if source_lang.clone()!=old_source_lang || target_lang.clone()!=old_target_lang {
-                    let _ = task_chan.send((text.clone(), target_lang.clone(), source_lang.clone()));
-                };          
+    
+                if let Ok(t) =  text_chan.try_recv() {
+                    *text =  t;
+                };
+                let text_style = egui::TextStyle::Body;
+                let row_height = ui.fonts()[text_style].row_height();
+                let num_rows = 7.6;
+                egui::ScrollArea::from_max_height(row_height*num_rows).show(ui, |ui| {
+                    ui.add(egui::TextEdit::multiline(text).desired_width(width).desired_rows(7));
+                });
             });
-
-            if let Ok(t) =  text_chan.try_recv() {
-                *text =  t;
-            };
-            ui.add(egui::TextEdit::multiline(text).desired_width(width).desired_rows(4));           
         });
-
-        // frame.set_window_size(egui::vec2(400.0, 300.0));
         frame.set_window_size(ctx.used_size());
     }
 }
