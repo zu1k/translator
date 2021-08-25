@@ -8,8 +8,6 @@ use cli_clipboard;
 use std::sync::mpsc;
 use online_api::*;
 
-// When compiling natively:
-#[cfg(not(target_arch = "wasm32"))]
 fn main() {
     use core::panic;
 
