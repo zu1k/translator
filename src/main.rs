@@ -1,9 +1,6 @@
 #![windows_subsystem = "windows"]
-
-
-#![cfg_attr(not(debug_assertions), deny(warnings))] // Forbid warnings in release builds
+#![cfg_attr(not(debug_assertions), deny(warnings))]
 #![warn(clippy::all, rust_2018_idioms)]
-
 
 use tauri_hotkey::{HotkeyManager, parse_hotkey};
 use enigo::{Enigo, Key, KeyboardControllable};
