@@ -8,6 +8,7 @@ use cli_clipboard;
 use std::sync::mpsc;
 use std::thread;
 use online_api as deepl;
+use std::time::Duration;
 
 fn main() {
     let (tx, rx) = mpsc::channel();
@@ -26,6 +27,7 @@ fn main() {
         enigo.key_down(Key::Control);
         enigo.key_click(Key::Layout('c'));
         enigo.key_up(Key::Control);
+        thread::sleep(Duration::from_millis(100));
         if let Ok(text) = cli_clipboard::get_contents() {
             if let Err(err) = tx.send(text) {
                 panic!("{}", err)
