@@ -2,6 +2,7 @@ use crate::font;
 
 use eframe::{egui, epi};
 use online_api as deepl;
+use std::sync::mpsc;
 
 pub struct MyApp {
     text: String,
@@ -10,11 +11,12 @@ pub struct MyApp {
 
     lang_list_with_auto: Vec<deepl::Lang>,
     lang_list: Vec<deepl::Lang>,
-    new_text: Box<Option<String>>
+    text_chan: mpsc::Receiver<String>,
+    task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>
 }
 
 impl MyApp {
-    pub fn new(text: String) -> Self {
+    pub fn new(text: String, text_chan: mpsc::Receiver<String>, task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>) -> Self {
         Self {
             text,
             source_lang: deepl::Lang::Auto,
@@ -22,7 +24,8 @@ impl MyApp {
 
             lang_list_with_auto: deepl::Lang::lang_list_with_auto(),
             lang_list: deepl::Lang::lang_list(),
-            new_text: Box::new(None)
+            text_chan,
+            task_chan
         }
     }
 }
@@ -33,11 +36,13 @@ impl epi::App for MyApp {
     }
 
     fn setup(&mut self, _ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>, _storage: Option<&dyn epi::Storage>) {
-        font::install_fonts(_ctx);        
+        font::install_fonts(_ctx);
+        let _ = self.task_chan.send((self.text.clone(), self.target_lang.clone(), self.source_lang.clone()));
+        self.text = "正在翻译中，移动鼠标触发UI更新\r\n\r\n".to_string() + &self.text;
     }
 
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
-        let Self { text, source_lang, target_lang, lang_list_with_auto, lang_list, new_text } = self;
+        let Self { text, source_lang, target_lang, lang_list_with_auto, lang_list, text_chan, task_chan } = self;
         let old_source_lang = source_lang.clone();
         let old_target_lang = target_lang.clone();
 
@@ -84,17 +89,13 @@ impl epi::App for MyApp {
                 });
 
                 if source_lang.clone()!=old_source_lang || target_lang.clone()!=old_target_lang {
-                    match deepl::translate(text.clone(), target_lang.clone(), source_lang.clone()) {
-                        Ok(t) => {
-                            *text = t 
-                        },
-                        Err(err) => {
-                            panic!("{}", err)
-                        }
-                    }
+                    let _ = task_chan.send((text.clone(), target_lang.clone(), source_lang.clone()));
                 };          
             });
 
+            if let Ok(t) =  text_chan.try_recv() {
+                *text =  t;
+            };
             ui.add(egui::TextEdit::multiline(text).desired_width(width).desired_rows(4));           
         });
 

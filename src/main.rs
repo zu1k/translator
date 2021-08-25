@@ -6,6 +6,8 @@ use tauri_hotkey::{HotkeyManager, parse_hotkey};
 use enigo::{Enigo, Key, KeyboardControllable};
 use cli_clipboard;
 use std::sync::mpsc;
+use std::thread;
+use online_api as deepl;
 
 fn main() {
     let (tx, rx) = mpsc::channel();
@@ -37,14 +39,25 @@ fn main() {
         match rx.recv() {
             Ok(text) => {
                 println!("{}", text);
-                let app = copy_translator::MyApp::new(text);
+                let (tx, rx) = mpsc::sync_channel(1);
+                let (task_tx, task_rx) = mpsc::sync_channel(1);
+                thread::spawn(move || {
+                    while let Ok((text, target_lang, source_lang)) = task_rx.recv() {
+                        let _ = match deepl::translate(text, target_lang, source_lang) {
+                            Ok(text) => tx.send(text),
+                            Err(err) => tx.send(err.to_string())
+                        };
+                    };
+                });
+                let app = copy_translator::MyApp::new(text, rx, task_tx);
+                let app = Box::new(app);
                 let native_options = eframe::NativeOptions {
                     always_on_top: true,
                     decorated: false,
                     initial_window_size: Some(egui::vec2(500.0, 100.0)),
                     ..Default::default()
                 };
-                eframe::run_native_return(Box::new(app), native_options);
+                eframe::run_native_return(app, native_options);
             },
             Err(err) => {
                 panic!("{}", err)
