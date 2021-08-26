@@ -2,11 +2,11 @@
 #![cfg_attr(not(debug_assertions), deny(warnings))]
 #![warn(clippy::all, rust_2018_idioms)]
 
+use copy_translator::register_hotkey;
 use online_api as deepl;
 use std::sync::mpsc;
 use std::thread;
 use tauri_hotkey::HotkeyManager;
-use copy_translator::register_hotkey;
 
 fn main() {
     let mut hk_mng = HotkeyManager::new();

@@ -1,7 +1,7 @@
+use enigo::{Enigo, Key, KeyboardControllable};
 use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::Duration;
-use enigo::{Enigo, Key, KeyboardControllable};
 use tauri_hotkey::{parse_hotkey, HotkeyManager};
 
 pub fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
@@ -46,4 +46,3 @@ pub fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
         panic!("{}", err)
     }
 }
-
