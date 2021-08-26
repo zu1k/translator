@@ -2,7 +2,9 @@ use crate::font;
 
 use eframe::{egui, epi};
 use online_api as deepl;
-use std::sync::mpsc;
+use std::sync::mpsc::{self, Receiver, Sender};
+use tauri_hotkey::HotkeyManager;
+use crate::register_hotkey;
 
 pub struct MyApp {
     text: String,
@@ -13,15 +15,19 @@ pub struct MyApp {
     lang_list: Vec<deepl::Lang>,
     text_chan: mpsc::Receiver<String>,
     task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
+    hk_mng: HotkeyManager,
+    tx_this: Sender<String>,
+    rx_this: Receiver<String>
 }
 
 impl MyApp {
     pub fn new(
         text: String,
         text_chan: mpsc::Receiver<String>,
-        task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
+        task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>
     ) -> Self {
-        Self {
+        let (tx, rx) = mpsc::channel();
+        let mut s = Self {
             text,
             source_lang: deepl::Lang::Auto,
             target_lang: deepl::Lang::ZH,
@@ -30,7 +36,12 @@ impl MyApp {
             lang_list: deepl::Lang::lang_list(),
             text_chan,
             task_chan,
-        }
+            hk_mng: HotkeyManager::new(),
+            tx_this: tx,
+            rx_this: rx
+        };
+        register_hotkey(&mut s.hk_mng, s.tx_this.clone());
+        s
     }
 }
 
@@ -52,6 +63,7 @@ impl epi::App for MyApp {
             self.source_lang.clone(),
         ));
         self.text = "正在翻译中，移动鼠标触发UI更新\r\n\r\n".to_string() + &self.text;
+        
     }
 
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
@@ -63,12 +75,24 @@ impl epi::App for MyApp {
             lang_list,
             text_chan,
             task_chan,
+            hk_mng: _,
+            tx_this: _,
+            rx_this
         } = self;
         let old_source_lang = source_lang.clone();
         let old_target_lang = target_lang.clone();
 
         if ctx.input().key_pressed(egui::Key::Escape) {
             frame.quit()
+        }
+
+        if let Ok(text_new) = rx_this.try_recv() {
+            *text = "正在翻译中，移动鼠标触发UI更新\r\n\r\n".to_string() + &text_new;
+            let _ = task_chan.send((
+                text_new.clone(),
+                target_lang.clone(),
+                source_lang.clone(),
+            ));
         }
 
         let len = text.len();

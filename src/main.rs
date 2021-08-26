@@ -2,18 +2,16 @@
 #![cfg_attr(not(debug_assertions), deny(warnings))]
 #![warn(clippy::all, rust_2018_idioms)]
 
-use cli_clipboard;
-use enigo::{Enigo, Key, KeyboardControllable};
 use online_api as deepl;
-use std::sync::mpsc::{self, Sender};
+use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
-use tauri_hotkey::{parse_hotkey, HotkeyManager};
+use tauri_hotkey::HotkeyManager;
+use copy_translator::register_hotkey;
 
 fn main() {
     let mut hk_mng = HotkeyManager::new();
-    let (tx, rx) = mpsc::channel();
-    register_hotkey(&mut hk_mng, tx);
+    let (tx_hk, rx) = mpsc::channel();
+    register_hotkey(&mut hk_mng, tx_hk.clone());
 
     loop {
         match rx.recv() {
@@ -29,6 +27,7 @@ fn main() {
                         };
                     }
                 });
+                let _ = hk_mng.unregister_all();
                 let app = copy_translator::MyApp::new(text, rx, task_tx);
                 let app = Box::new(app);
                 let native_options = eframe::NativeOptions {
@@ -38,53 +37,11 @@ fn main() {
                     ..Default::default()
                 };
                 eframe::run_native_return(app, native_options);
+                register_hotkey(&mut hk_mng, tx_hk.clone());
             }
             Err(err) => {
                 panic!("{}", err)
             }
         }
-    }
-}
-
-fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
-    // CTRL+SHIFT+D quit
-    if let Err(err) = hk_mng.register(parse_hotkey("CTRL+SHIFT+D").unwrap(), move || {
-        std::process::exit(0)
-    }) {
-        panic!("{}", err)
-    }
-
-    // CTRL+D launch
-    let tx_d = tx.clone();
-    if let Err(err) = hk_mng.register(parse_hotkey("CTRL+D").unwrap(), move || {
-        let mut enigo = Enigo::new();
-        enigo.key_down(Key::Control);
-        enigo.key_click(Key::Layout('c'));
-        enigo.key_up(Key::Control);
-        thread::sleep(Duration::from_millis(100));
-        if let Ok(text) = cli_clipboard::get_contents() {
-            if let Err(err) = tx_d.send(text) {
-                panic!("{}", err)
-            }
-        }
-    }) {
-        panic!("{}", err)
-    }
-
-    // CTRL+Q launch
-    let tx_q = tx.clone();
-    if let Err(err) = hk_mng.register(parse_hotkey("CTRL+Q").unwrap(), move || {
-        let mut enigo = Enigo::new();
-        enigo.key_down(Key::Control);
-        enigo.key_click(Key::Layout('c'));
-        enigo.key_up(Key::Control);
-        thread::sleep(Duration::from_millis(100));
-        if let Ok(text) = cli_clipboard::get_contents() {
-            if let Err(err) = tx_q.send(text) {
-                panic!("{}", err)
-            }
-        }
-    }) {
-        panic!("{}", err)
     }
 }
