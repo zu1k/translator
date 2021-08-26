@@ -97,9 +97,13 @@ impl epi::App for MyApp {
                                 ui.selectable_value(source_lang, i, i.description());
                             }
                         });
-                    if ui.add(egui::Button::new("交换")).clicked() {
+                    if ui.add(egui::Button::new(" ⇌ ").frame(false)).clicked() {
                         let tmp_target_lang = target_lang.clone();
-                        *target_lang = source_lang.clone();
+                        *target_lang = if *source_lang == deepl::Lang::Auto {
+                            deepl::Lang::EN
+                        } else {
+                            source_lang.clone()
+                        };
                         *source_lang = tmp_target_lang;
                     };
                     egui::ComboBox::from_id_source(egui::Id::new("target_lang_ComboBox"))
