@@ -4,7 +4,7 @@
 
 use copy_translator::register_hotkey;
 use copy_translator::ui;
-use online_api as deepl;
+use deepl;
 use std::io::Cursor;
 use std::sync::mpsc;
 use std::thread;
@@ -95,7 +95,7 @@ fn main() {
                     drag_and_drop_support: true,
                     ..Default::default()
                 };
-                eframe::run_native_return(app, native_options);
+                eframe::run_native(app, native_options);
                 register_hotkey(&mut hk_mng, tx_hk.clone());
             }
             Err(err) => {

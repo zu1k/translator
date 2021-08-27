@@ -366,6 +366,7 @@ version = "0.1.0"
 dependencies = [
  "cli-clipboard",
  "copypasta",
+ "deepl",
  "eframe",
  "egui",
  "egui_glium",
@@ -373,7 +374,6 @@ dependencies = [
  "epi",
  "glium",
  "ico",
- "online-api",
  "piet-common",
  "rdev",
  "tauri-hotkey",
@@ -632,6 +632,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "deepl"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "strum 0.21.0",
+ "tokio",
+]
+
+[[package]]
 name = "deflate"
 version = "0.7.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -720,7 +731,8 @@ dependencies = [
 
 [[package]]
 name = "eframe"
-version = "0.13.1"
+version = "0.14.0"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "egui",
  "egui_glium",
@@ -730,14 +742,16 @@ dependencies = [
 
 [[package]]
 name = "egui"
-version = "0.13.1"
+version = "0.14.0"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "epaint",
 ]
 
 [[package]]
 name = "egui_glium"
-version = "0.13.1"
+version = "0.14.0"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "copypasta",
  "egui",
@@ -749,7 +763,8 @@ dependencies = [
 
 [[package]]
 name = "egui_web"
-version = "0.13.0"
+version = "0.14.0"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "egui",
  "epi",
@@ -767,7 +782,8 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "emath"
-version = "0.13.0"
+version = "0.14.0"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 
 [[package]]
 name = "encoding_rs"
@@ -793,7 +809,8 @@ dependencies = [
 
 [[package]]
 name = "epaint"
-version = "0.13.0"
+version = "0.14.0"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "ab_glyph",
  "ahash",
@@ -804,7 +821,8 @@ dependencies = [
 
 [[package]]
 name = "epi"
-version = "0.13.0"
+version = "0.14.0"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "egui",
 ]
@@ -1771,17 +1789,6 @@ name = "once_cell"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
-
-[[package]]
-name = "online-api"
-version = "0.1.0"
-dependencies = [
- "reqwest",
- "serde",
- "serde_json",
- "strum 0.21.0",
- "tokio",
-]
 
 [[package]]
 name = "openssl"

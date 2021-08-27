@@ -1,8 +1,8 @@
 use crate::font;
 
 use crate::{ctrl_c, register_hotkey};
+use deepl;
 use eframe::{egui, epi};
-use online_api as deepl;
 use std::fmt::Debug;
 use std::sync::mpsc::{self, Receiver, Sender};
 use tauri_hotkey::HotkeyManager;
@@ -249,7 +249,7 @@ impl epi::App for MyApp {
             });
         });
         frame.set_window_size(ctx.used_size());
-        frame.set_decorated(*show_box);
+        frame.set_decorations(*show_box);
 
         // repaint everytime otherwise other events are needed to trigger
         ctx.request_repaint();
