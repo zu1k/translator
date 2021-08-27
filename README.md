@@ -6,6 +6,8 @@ Copy Translator 是使用Rust编写的翻译小工具
 
 工具仅一个exe，启动后会驻留后台，选中文本后按 `ctrl+d` 或 `ctrl+q` 唤起翻译界面，`esc`关闭界面，`ctrl+shift+d`完全退出
 
+在界面开启的情况下，可以通过选中文本触发翻译行为，无需快捷键，俗称“划词翻译”
+
 ![使用截图](./res/pic.png)
 
 ## Thanks
