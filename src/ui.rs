@@ -62,7 +62,7 @@ impl epi::App for MyApp {
             self.target_lang.clone(),
             self.source_lang.clone(),
         ));
-        self.text = "正在翻译中，移动鼠标触发UI更新\r\n\r\n".to_string() + &self.text;
+        self.text = "正在翻译中...\r\n\r\n".to_string() + &self.text;
     }
 
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
@@ -86,7 +86,7 @@ impl epi::App for MyApp {
         }
 
         if let Ok(text_new) = rx_this.try_recv() {
-            *text = "正在翻译中，移动鼠标触发UI更新\r\n\r\n".to_string() + &text_new;
+            *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
             let _ = task_chan.send((text_new.clone(), target_lang.clone(), source_lang.clone()));
         }
 
@@ -159,10 +159,7 @@ impl epi::App for MyApp {
                 if let Ok(t) = text_chan.try_recv() {
                     *text = t;
                 };
-                let text_style = egui::TextStyle::Body;
-                let row_height = ui.fonts()[text_style].row_height();
-                let num_rows = 7.6;
-                egui::ScrollArea::from_max_height(row_height * num_rows).show(ui, |ui| {
+                egui::ScrollArea::auto_sized().show(ui, |ui| {
                     ui.add(
                         egui::TextEdit::multiline(text)
                             .desired_width(width)
@@ -172,5 +169,8 @@ impl epi::App for MyApp {
             });
         });
         frame.set_window_size(ctx.used_size());
+
+        // repaint everytime otherwise other events are needed to trigger
+        ctx.request_repaint();
     }
 }
