@@ -18,6 +18,7 @@ pub struct MyApp {
     hk_mng: HotkeyManager,
     tx_this: Sender<String>,
     rx_this: Receiver<String>,
+    show_box: bool,
 }
 
 impl MyApp {
@@ -39,6 +40,7 @@ impl MyApp {
             hk_mng: HotkeyManager::new(),
             tx_this: tx,
             rx_this: rx,
+            show_box: false,
         };
         register_hotkey(&mut s.hk_mng, s.tx_this.clone());
         s
@@ -77,6 +79,7 @@ impl epi::App for MyApp {
             hk_mng: _,
             tx_this: _,
             rx_this,
+            show_box,
         } = self;
         let old_source_lang = source_lang.clone();
         let old_target_lang = target_lang.clone();
@@ -90,19 +93,6 @@ impl epi::App for MyApp {
             let _ = task_chan.send((text_new.clone(), target_lang.clone(), source_lang.clone()));
         }
 
-        let len = text.len();
-        println!("{}", len);
-        let width = if len < 400 {
-            500.0
-        } else if len < 1000 {
-            600.0
-        } else if len < 2000 {
-            800.0
-        } else {
-            1000.0
-        };
-
-        println!("{}", width);
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.horizontal_wrapped(|ui| {
@@ -140,6 +130,10 @@ impl epi::App for MyApp {
                                 format!("{} GitHub", egui::special_emojis::GITHUB),
                                 "https://github.com/zu1k/copy-translator",
                             );
+
+                            ui.add(super::toggle_switch::toggle(show_box)).on_hover_text(
+                                "显示窗口框，用来修改窗口大小和移动位置",
+                            );
                         });
                     });
 
@@ -162,13 +156,14 @@ impl epi::App for MyApp {
                 egui::ScrollArea::auto_sized().show(ui, |ui| {
                     ui.add(
                         egui::TextEdit::multiline(text)
-                            .desired_width(width)
+                            .desired_width(2000.0)
                             .desired_rows(7),
                     );
                 });
             });
         });
         frame.set_window_size(ctx.used_size());
+        frame.set_decorated(*show_box);
 
         // repaint everytime otherwise other events are needed to trigger
         ctx.request_repaint();
