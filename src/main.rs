@@ -7,11 +7,22 @@ use online_api as deepl;
 use std::sync::mpsc;
 use std::thread;
 use tauri_hotkey::HotkeyManager;
+use std::io::Cursor;
 
 fn main() {
     let mut hk_mng = HotkeyManager::new();
     let (tx_hk, rx) = mpsc::channel();
     register_hotkey(&mut hk_mng, tx_hk.clone());
+
+    // embed ico file
+    let ioc_buf = Cursor::new(include_bytes!("../res/icon.ico"));
+    let icon_dir = ico::IconDir::read(ioc_buf).unwrap();
+    let image = icon_dir.entries()[6].decode().unwrap();
+    let ico_data = epi::IconData {
+        rgba: std::vec::Vec::from(image.rgba_data()),
+        width: image.width(),
+        height: image.height(),
+    };
 
     loop {
         match rx.recv() {
@@ -34,6 +45,7 @@ fn main() {
                     always_on_top: true,
                     decorated: false,
                     initial_window_size: Some(egui::vec2(500.0, 196.0)),
+                    icon_data: Some(ico_data.clone()),
                     ..Default::default()
                 };
                 eframe::run_native_return(app, native_options);

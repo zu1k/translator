@@ -131,9 +131,8 @@ impl epi::App for MyApp {
                                 "https://github.com/zu1k/copy-translator",
                             );
 
-                            ui.add(super::toggle_switch::toggle(show_box)).on_hover_text(
-                                "显示窗口框，用来修改窗口大小和移动位置",
-                            );
+                            ui.add(super::toggle_switch::toggle(show_box))
+                                .on_hover_text("显示窗口框，用来修改窗口大小和移动位置");
                         });
                     });
 
@@ -157,7 +156,8 @@ impl epi::App for MyApp {
                     ui.add(
                         egui::TextEdit::multiline(text)
                             .desired_width(2000.0)
-                            .desired_rows(7),
+                            // .desired_rows(7)
+                            .lock_focus(true)
                     );
                 });
             });
