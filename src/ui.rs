@@ -157,7 +157,7 @@ impl epi::App for MyApp {
                         egui::TextEdit::multiline(text)
                             .desired_width(2000.0)
                             .desired_rows(7)
-                            .lock_focus(true)
+                            .lock_focus(true),
                     );
                 });
             });

@@ -4,10 +4,10 @@
 
 use copy_translator::register_hotkey;
 use online_api as deepl;
+use std::io::Cursor;
 use std::sync::mpsc;
 use std::thread;
 use tauri_hotkey::HotkeyManager;
-use std::io::Cursor;
 
 fn main() {
     let mut hk_mng = HotkeyManager::new();
@@ -17,7 +17,7 @@ fn main() {
     // embed ico file
     let ioc_buf = Cursor::new(include_bytes!("../res/icon.ico"));
     let icon_dir = ico::IconDir::read(ioc_buf).unwrap();
-    let image = icon_dir.entries()[6].decode().unwrap();
+    let image = icon_dir.entries()[5].decode().unwrap();
     let ico_data = epi::IconData {
         rgba: std::vec::Vec::from(image.rgba_data()),
         width: image.width(),
