@@ -15,12 +15,7 @@ pub fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
     // CTRL+D launch
     let tx_d = tx.clone();
     if let Err(err) = hk_mng.register(parse_hotkey("CTRL+D").unwrap(), move || {
-        let mut enigo = Enigo::new();
-        enigo.key_down(Key::Control);
-        enigo.key_click(Key::Layout('c'));
-        enigo.key_up(Key::Control);
-        thread::sleep(Duration::from_millis(100));
-        if let Ok(text) = cli_clipboard::get_contents() {
+        if let Some(text) = ctrl_c() {
             if let Err(err) = tx_d.send(text) {
                 panic!("{}", err)
             }
@@ -32,17 +27,25 @@ pub fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
     // CTRL+Q launch
     let tx_q = tx.clone();
     if let Err(err) = hk_mng.register(parse_hotkey("CTRL+Q").unwrap(), move || {
-        let mut enigo = Enigo::new();
-        enigo.key_down(Key::Control);
-        enigo.key_click(Key::Layout('c'));
-        enigo.key_up(Key::Control);
-        thread::sleep(Duration::from_millis(50));
-        if let Ok(text) = cli_clipboard::get_contents() {
+        if let Some(text) = ctrl_c() {
             if let Err(err) = tx_q.send(text) {
                 panic!("{}", err)
             }
         }
     }) {
         panic!("{}", err)
+    }
+}
+
+pub fn ctrl_c() -> Option<String> {
+    let mut enigo = Enigo::new();
+    enigo.key_down(Key::Control);
+    enigo.key_click(Key::Layout('c'));
+    enigo.key_up(Key::Control);
+    thread::sleep(Duration::from_millis(50));
+    if let Ok(text) = cli_clipboard::get_contents() {
+        Some(text)
+    } else {
+        None
     }
 }

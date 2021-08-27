@@ -3,6 +3,7 @@
 #![warn(clippy::all, rust_2018_idioms)]
 
 use copy_translator::register_hotkey;
+use copy_translator::ui;
 use online_api as deepl;
 use std::io::Cursor;
 use std::sync::mpsc;
@@ -24,28 +25,74 @@ fn main() {
         height: image.height(),
     };
 
+    // listen for global mouse event
+    let (rdev_tx, rdev_rx) = mpsc::sync_channel(1);
+    let mouse_event_rx_wrap = std::sync::Arc::new(std::sync::Mutex::new(rdev_rx));
+    thread::spawn(move || {
+        // let last_move =
+        if let Err(error) = rdev::listen(move |event| {
+            match event.event_type {
+                rdev::EventType::ButtonPress(button) => {
+                    if button == rdev::Button::Left {
+                        let _ = rdev_tx.try_send(ui::Event::MouseEvent(event.event_type));
+                    }
+                }
+                rdev::EventType::ButtonRelease(button) => {
+                    if button == rdev::Button::Left {
+                        let _ = rdev_tx.try_send(ui::Event::MouseEvent(event.event_type));
+                    }
+                }
+                rdev::EventType::MouseMove { x: _, y: _ } => {
+                    let _ = rdev_tx.try_send(ui::Event::MouseEvent(event.event_type));
+                }
+                _ => {}
+            };
+        }) {
+            println!("Error: {:?}", error)
+        }
+    });
+
     loop {
         match rx.recv() {
             Ok(text) => {
-                println!("{}", text);
-                let (tx, rx) = mpsc::sync_channel(1);
+                let (event_tx, event_rx) = mpsc::sync_channel(1);
                 let (task_tx, task_rx) = mpsc::sync_channel(1);
+
+                let event_tx_trasnlate = event_tx.clone();
                 thread::spawn(move || {
                     while let Ok((text, target_lang, source_lang)) = task_rx.recv() {
                         let _ = match deepl::translate(text, target_lang, source_lang) {
-                            Ok(text) => tx.send(text),
-                            Err(err) => tx.send(err.to_string()),
+                            Ok(text) => event_tx_trasnlate.send(ui::Event::TextSet(text)),
+                            Err(err) => {
+                                event_tx_trasnlate.send(ui::Event::TextSet(err.to_string()))
+                            }
                         };
                     }
                 });
+
+                let mouse_event_rx = mouse_event_rx_wrap.clone();
+                let event_tx_mouse = event_tx.clone();
+                thread::spawn(move || loop {
+                    let rx = mouse_event_rx.lock().unwrap();
+                    match rx.recv() {
+                        Ok(event) => {
+                            if let Err(_) = event_tx_mouse.send(event) {
+                                break;
+                            }
+                        }
+                        Err(_) => break,
+                    }
+                });
+
                 let _ = hk_mng.unregister_all();
-                let app = copy_translator::MyApp::new(text, rx, task_tx);
+                let app = ui::MyApp::new(text, event_rx, task_tx);
                 let app = Box::new(app);
                 let native_options = eframe::NativeOptions {
                     always_on_top: true,
                     decorated: false,
                     initial_window_size: Some(egui::vec2(500.0, 196.0)),
                     icon_data: Some(ico_data.clone()),
+                    drag_and_drop_support: true,
                     ..Default::default()
                 };
                 eframe::run_native_return(app, native_options);
