@@ -635,6 +635,7 @@ dependencies = [
 name = "deepl"
 version = "0.1.0"
 dependencies = [
+ "cfg-if 1.0.0",
  "reqwest",
  "serde",
  "serde_json",
