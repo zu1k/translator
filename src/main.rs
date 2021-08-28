@@ -63,8 +63,8 @@ fn main() {
                     while let Ok((text, target_lang, source_lang)) = task_rx.recv() {
                         let _ = match deepl::translate(text, target_lang, source_lang) {
                             Ok(text) => event_tx_trasnlate.send(ui::Event::TextSet(text)),
-                            Err(err) => {
-                                event_tx_trasnlate.send(ui::Event::TextSet(err.to_string()))
+                            Err(_err) => {
+                                event_tx_trasnlate.send(ui::Event::TextSet("翻译接口失效，请更新最新版".into()))
                             }
                         };
                     }
