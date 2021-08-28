@@ -10,8 +10,9 @@ serde_json = "1.0"
 strum = { version = "0.21", features = ["derive"] }
 reqwest = { version = "0.11", features = ["json"], optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
+rand = { version = "0.8.4", optional = true }
 deepl-rs = { path = "../../deepl-rs", optional = true }
 
 [features]
-online = ["reqwest", "tokio"]
+online = ["reqwest", "tokio", "rand"]
 local = ["deepl-rs"]
