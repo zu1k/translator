@@ -636,10 +636,33 @@ name = "deepl"
 version = "0.1.0"
 dependencies = [
  "cfg-if 1.0.0",
+ "deepl-rs",
  "reqwest",
  "serde",
  "serde_json",
  "strum 0.21.0",
+ "tokio",
+]
+
+[[package]]
+name = "deepl-jsonrpc"
+version = "0.1.0"
+dependencies = [
+ "cfg-if 1.0.0",
+ "rand",
+ "serde",
+ "serde_json",
+ "strum 0.21.0",
+ "wasm-bindgen",
+ "wasm-timer",
+]
+
+[[package]]
+name = "deepl-rs"
+version = "0.1.0"
+dependencies = [
+ "deepl-jsonrpc",
+ "reqwest",
  "tokio",
 ]
 
@@ -686,6 +709,27 @@ dependencies = [
  "quote",
  "rustc_version",
  "syn",
+]
+
+[[package]]
+name = "directories-next"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "339ee130d97a610ea5a5872d2bbb130fdf68884ff09d3028b81bec8a1ac23bbc"
+dependencies = [
+ "cfg-if 1.0.0",
+ "dirs-sys-next",
+]
+
+[[package]]
+name = "dirs-sys-next"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ebda144c4fe02d1f7ea1a7d9641b6fc6b580adcfa024ae48797ecdeb6825b4d"
+dependencies = [
+ "libc",
+ "redox_users",
+ "winapi",
 ]
 
 [[package]]
@@ -747,6 +791,8 @@ version = "0.14.0"
 source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "epaint",
+ "ron",
+ "serde",
 ]
 
 [[package]]
@@ -755,9 +801,12 @@ version = "0.14.0"
 source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "copypasta",
+ "directories-next",
  "egui",
  "epi",
  "glium",
+ "ron",
+ "serde",
  "webbrowser",
  "winapi",
 ]
@@ -770,6 +819,8 @@ dependencies = [
  "egui",
  "epi",
  "js-sys",
+ "ron",
+ "serde",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -785,6 +836,9 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 name = "emath"
 version = "0.14.0"
 source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "encoding_rs"
@@ -818,6 +872,7 @@ dependencies = [
  "atomic_refcell",
  "emath",
  "ordered-float",
+ "serde",
 ]
 
 [[package]]
@@ -826,6 +881,8 @@ version = "0.14.0"
 source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#2c8e7871b4680f317b7b3ab7f44254ef68d439b8"
 dependencies = [
  "egui",
+ "ron",
+ "serde",
 ]
 
 [[package]]
@@ -907,12 +964,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "futures"
+version = "0.3.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1adc00f486adfc9ce99f77d717836f0c5aa84965eb0b4f051f4e83f7cab53f8b"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-io",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+]
+
+[[package]]
 name = "futures-channel"
 version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74ed2411805f6e4e3d9bc904c95d5d423b89b3b25dc0250aa74729de20629ff9"
 dependencies = [
  "futures-core",
+ "futures-sink",
 ]
 
 [[package]]
@@ -931,6 +1004,12 @@ dependencies = [
  "futures-task",
  "futures-util",
 ]
+
+[[package]]
+name = "futures-io"
+version = "0.3.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b0e06c393068f3a6ef246c75cdca793d6a46347e75286933e5e75fd2fd11582"
 
 [[package]]
 name = "futures-macro"
@@ -964,9 +1043,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67eb846bfd58e44a8481a00049e82c43e0ccb5d61f8dc071057cb19249dd4d78"
 dependencies = [
  "autocfg",
+ "futures-channel",
  "futures-core",
+ "futures-io",
  "futures-macro",
+ "futures-sink",
  "futures-task",
+ "memchr 2.3.4",
  "pin-project-lite",
  "pin-utils",
  "proc-macro-hack",
@@ -2279,6 +2362,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "redox_users"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "528532f3d801c87aec9def2add9ca802fe569e44a544afe633765267840abe64"
+dependencies = [
+ "getrandom",
+ "redox_syscall 0.2.10",
+]
+
+[[package]]
 name = "remove_dir_all"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2320,6 +2413,17 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "winreg",
+]
+
+[[package]]
+name = "ron"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "064ea8613fb712a19faf920022ec8ddf134984f100090764a4e1d768f3827f1f"
+dependencies = [
+ "base64",
+ "bitflags",
+ "serde",
 ]
 
 [[package]]
@@ -3206,6 +3310,21 @@ name = "wasm-bindgen-shared"
 version = "0.2.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2e0c4a743a309662d45f4ede961d7afa4ba4131a59a639f29b0069c3798bbcc2"
+
+[[package]]
+name = "wasm-timer"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be0ecb0db480561e9a7642b5d3e4187c128914e58aa84330b9493e3eb68c5e7f"
+dependencies = [
+ "futures",
+ "js-sys",
+ "parking_lot 0.11.1",
+ "pin-utils",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
 
 [[package]]
 name = "wayland-client"

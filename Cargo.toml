@@ -17,7 +17,7 @@ egui_glium = { git = "https://github.com/zu1k/egui.git", branch = "copy-translat
 epi = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 enigo = { git = "https://github.com/enigo-rs/enigo" }
 glium = "0.30"
-deepl = { path = "./deepl", features = ["online"] } # features must be specified, `local` or `online`
+deepl = { path = "./deepl", default-features = false } # features must be specified, `local` or `online`
 piet-common = "0.4.1"
 tauri-hotkey = "0.1.2"
 copypasta = "0.7.1"
@@ -26,3 +26,9 @@ rdev = "0.5.1"
 
 [target.'cfg(target_os="windows")'.build-dependencies]
 winres = "0.1"
+
+[features]
+default = ["local"]
+online = ["deepl/online"]
+local = ["deepl/local"]
+persistence = ["eframe/persistence", "egui/persistence", "egui_glium/persistence", "epi/persistence"]

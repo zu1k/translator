@@ -9,7 +9,7 @@ pub fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
     if let Err(err) = hk_mng.register(parse_hotkey("CTRL+SHIFT+D").unwrap(), move || {
         std::process::exit(0)
     }) {
-        panic!("{}", err)
+        panic!("{:?}", err)
     }
 
     // CTRL+D launch
@@ -17,11 +17,11 @@ pub fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
     if let Err(err) = hk_mng.register(parse_hotkey("CTRL+D").unwrap(), move || {
         if let Some(text) = ctrl_c() {
             if let Err(err) = tx_d.send(text) {
-                panic!("{}", err)
+                panic!("{:?}", err)
             }
         }
     }) {
-        panic!("{}", err)
+        panic!("{:?}", err)
     }
 
     // CTRL+Q launch
@@ -29,11 +29,11 @@ pub fn register_hotkey(hk_mng: &mut HotkeyManager, tx: Sender<String>) {
     if let Err(err) = hk_mng.register(parse_hotkey("CTRL+Q").unwrap(), move || {
         if let Some(text) = ctrl_c() {
             if let Err(err) = tx_q.send(text) {
-                panic!("{}", err)
+                panic!("{:?}", err)
             }
         }
     }) {
-        panic!("{}", err)
+        panic!("{:?}", err)
     }
 }
 
