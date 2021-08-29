@@ -28,7 +28,7 @@ rdev = "0.5.1"
 winres = "0.1"
 
 [features]
-default = ["local"]
+default = ["online"]
 online = ["deepl/online"]
 local = ["deepl/local"]
 persistence = ["eframe/persistence", "egui/persistence", "egui_glium/persistence", "epi/persistence"]
