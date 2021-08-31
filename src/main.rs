@@ -11,9 +11,13 @@ use std::sync::mpsc;
 use std::thread;
 
 fn main() {
-    {
-        let mut settings = SETTINGS.write().unwrap();
-        settings.merge(config::File::with_name("settings")).unwrap();
+    match std::env::current_exe() {
+        Ok(path) =>  {
+            let settings_path = path.parent().unwrap().join("settings");
+            let mut settings = SETTINGS.write().unwrap();
+            settings.merge(config::File::from(settings_path)).unwrap(); 
+        },
+        Err(err) => panic!("{}", err)
     }
 
     let (tx_hk, rx) = mpsc::channel();
