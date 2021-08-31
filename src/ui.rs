@@ -1,12 +1,11 @@
+use crate::HotkeySetting;
 use crate::font;
 
-use crate::{ctrl_c, register_hotkey};
+use crate::ctrl_c;
 use deepl;
 use eframe::{egui, epi};
 use std::fmt::Debug;
-use std::sync::mpsc::{self, Receiver, Sender};
-use tauri_hotkey::HotkeyManager;
-
+use std::sync::mpsc::{self, Receiver};
 #[derive(Debug, Clone, Copy)]
 pub struct MouseState {
     last_event: u8,
@@ -54,8 +53,6 @@ pub struct MyApp {
     lang_list_with_auto: Vec<deepl::Lang>,
     lang_list: Vec<deepl::Lang>,
     task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
-    hk_mng: HotkeyManager,
-    tx_this: Sender<String>,
     rx_this: Receiver<String>,
     show_box: bool,
     mouse_state: MouseState,
@@ -76,7 +73,9 @@ impl MyApp {
         task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
     ) -> Self {
         let (tx, rx) = mpsc::channel();
-        let mut s = Self {
+        let mut hk_setting = HotkeySetting::default();
+        hk_setting.register_hotkey(tx.clone());
+        Self {
             text,
             source_lang: deepl::Lang::Auto,
             target_lang: deepl::Lang::ZH,
@@ -84,16 +83,12 @@ impl MyApp {
             lang_list_with_auto: deepl::Lang::lang_list_with_auto(),
             lang_list: deepl::Lang::lang_list(),
             task_chan,
-            hk_mng: HotkeyManager::new(),
-            tx_this: tx,
             rx_this: rx,
             show_box: false,
             mouse_state: MouseState::new(),
             event_rx,
             clipboard_last: String::new(),
-        };
-        register_hotkey(&mut s.hk_mng, s.tx_this.clone());
-        s
+        }
     }
 }
 
@@ -126,8 +121,6 @@ impl epi::App for MyApp {
             lang_list_with_auto,
             lang_list,
             task_chan,
-            hk_mng: _,
-            tx_this: _,
             rx_this,
             show_box,
             mouse_state,

@@ -1,19 +1,25 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 #![cfg_attr(not(debug_assertions), deny(warnings))]
 #![warn(clippy::all, rust_2018_idioms)]
 
-use copy_translator::register_hotkey;
 use copy_translator::ui;
+use copy_translator::HotkeySetting;
+use copy_translator::SETTINGS;
 use deepl;
 use std::io::Cursor;
 use std::sync::mpsc;
 use std::thread;
-use tauri_hotkey::HotkeyManager;
 
 fn main() {
-    let mut hk_mng = HotkeyManager::new();
+    {
+        let mut settings = SETTINGS.write().unwrap();
+        settings.merge(config::File::with_name("settings")).unwrap();
+    }
+
     let (tx_hk, rx) = mpsc::channel();
-    register_hotkey(&mut hk_mng, tx_hk.clone());
+
+    let mut hotkey_settings = HotkeySetting::default();
+    hotkey_settings.register_hotkey(tx_hk.clone());
 
     // embed ico file
     let ioc_buf = Cursor::new(include_bytes!("../res/icon.ico"));
@@ -63,9 +69,8 @@ fn main() {
                     while let Ok((text, target_lang, source_lang)) = task_rx.recv() {
                         let _ = match deepl::translate(text, target_lang, source_lang) {
                             Ok(text) => event_tx_trasnlate.send(ui::Event::TextSet(text)),
-                            Err(_err) => {
-                                event_tx_trasnlate.send(ui::Event::TextSet("翻译接口失效，请更新最新版".into()))
-                            }
+                            Err(_err) => event_tx_trasnlate
+                                .send(ui::Event::TextSet("翻译接口失效，请更新最新版".into())),
                         };
                     }
                 });
@@ -83,8 +88,7 @@ fn main() {
                         Err(_) => break,
                     }
                 });
-
-                let _ = hk_mng.unregister_all();
+                hotkey_settings.unregister_all();
                 let app = ui::MyApp::new(text, event_rx, task_tx);
                 let app = Box::new(app);
                 let native_options = eframe::NativeOptions {
@@ -96,7 +100,7 @@ fn main() {
                     ..Default::default()
                 };
                 eframe::run_native(app, native_options);
-                register_hotkey(&mut hk_mng, tx_hk.clone());
+                hotkey_settings.register_hotkey(tx_hk.clone());
             }
             Err(err) => {
                 panic!("{}", err)
