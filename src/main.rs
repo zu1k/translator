@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 #![cfg_attr(not(debug_assertions), deny(warnings))]
 #![warn(clippy::all, rust_2018_idioms)]
 
@@ -9,15 +9,18 @@ use deepl;
 use std::io::Cursor;
 use std::sync::mpsc;
 use std::thread;
+use log::warn;
 
 fn main() {
-    match std::env::current_exe() {
-        Ok(path) =>  {
-            let settings_path = path.parent().unwrap().join("settings");
-            let mut settings = SETTINGS.write().unwrap();
-            settings.merge(config::File::from(settings_path)).unwrap(); 
-        },
-        Err(err) => panic!("{}", err)
+    if let Ok(path) = std::env::current_exe() {
+        let settings_path = match path.parent() {
+            Some(parent) => parent.join("settings"),
+            None => std::path::PathBuf::from("settings")
+        };
+        let mut settings = SETTINGS.write().unwrap();
+        if let Err(err) = settings.merge(config::File::from(settings_path)) {
+            warn!("settings merge failed, use default settings, err: {}", err);
+        }
     }
 
     let (tx_hk, rx) = mpsc::channel();
@@ -58,7 +61,7 @@ fn main() {
                 _ => {}
             };
         }) {
-            println!("Error: {:?}", error)
+            warn!("rdev listen error: {:?}", error)
         }
     });
 

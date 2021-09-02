@@ -401,6 +401,7 @@ dependencies = [
  "glium",
  "ico",
  "lazy_static 1.4.0",
+ "log",
  "piet-common",
  "rdev",
  "tauri-hotkey",

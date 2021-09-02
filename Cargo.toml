@@ -20,6 +20,7 @@ epi = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 enigo = { git = "https://github.com/enigo-rs/enigo" }
 glium = "0.30"
 lazy_static = "1.4.0"
+log = "0.4.14"
 piet-common = "0.4.1"
 tauri-hotkey = "0.1.2"
 copypasta = "0.7.1"
@@ -30,7 +31,7 @@ rdev = "0.5.1"
 winres = "0.1"
 
 [features]
-default = ["online"]
+default = ["local"]
 online = ["deepl/online"]
 local = ["deepl/local"]
 persistence = ["eframe/persistence", "egui/persistence", "egui_glium/persistence", "epi/persistence"]
