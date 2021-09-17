@@ -7,7 +7,6 @@ edition = "2018"
 lto = true
 opt-level = "z"
 codegen-units = 1
-panic = "abort"
 
 [dependencies]
 cli-clipboard = "0.2" # a fork version of cliboard, add wayland support
@@ -20,7 +19,7 @@ epi = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 enigo = { git = "https://github.com/enigo-rs/enigo" }
 glium = "0.30"
 lazy_static = "1.4.0"
-log = "0.4.14"
+log = "0.4"
 piet-common = "0.4.1"
 tauri-hotkey = "0.1.2"
 copypasta = "0.7.1"

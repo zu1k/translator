@@ -1,11 +1,12 @@
-use crate::HotkeySetting;
-use crate::font;
+use crate::{font, HotkeySetting};
 
 use crate::ctrl_c;
 use deepl;
 use eframe::{egui, epi};
-use std::fmt::Debug;
-use std::sync::mpsc::{self, Receiver};
+use std::{
+    fmt::Debug,
+    sync::mpsc::{self, Receiver},
+};
 #[derive(Debug, Clone, Copy)]
 pub struct MouseState {
     last_event: u8,
@@ -59,6 +60,8 @@ pub struct MyApp {
 
     event_rx: mpsc::Receiver<Event>,
     clipboard_last: String,
+
+    hk_setting: HotkeySetting,
 }
 
 pub enum Event {
@@ -74,7 +77,7 @@ impl MyApp {
     ) -> Self {
         let (tx, rx) = mpsc::channel();
         let mut hk_setting = HotkeySetting::default();
-        hk_setting.register_hotkey(tx.clone());
+        hk_setting.register_hotkey(tx);
         Self {
             text,
             source_lang: deepl::Lang::Auto,
@@ -88,6 +91,8 @@ impl MyApp {
             mouse_state: MouseState::new(),
             event_rx,
             clipboard_last: String::new(),
+
+            hk_setting,
         }
     }
 }
@@ -104,11 +109,9 @@ impl epi::App for MyApp {
         _storage: Option<&dyn epi::Storage>,
     ) {
         font::install_fonts(_ctx);
-        let _ = self.task_chan.send((
-            self.text.clone(),
-            self.target_lang.clone(),
-            self.source_lang.clone(),
-        ));
+        let _ = self
+            .task_chan
+            .send((self.text.clone(), self.target_lang, self.source_lang));
         self.clipboard_last = self.text.clone();
         self.text = "正在翻译中...\r\n\r\n".to_string() + &self.text;
     }
@@ -126,11 +129,13 @@ impl epi::App for MyApp {
             mouse_state,
             event_rx,
             clipboard_last,
+            hk_setting,
         } = self;
-        let old_source_lang = source_lang.clone();
-        let old_target_lang = target_lang.clone();
+        let old_source_lang = *source_lang;
+        let old_target_lang = *target_lang;
 
         if ctx.input().key_pressed(egui::Key::Escape) {
+            hk_setting.unregister_all();
             frame.quit()
         }
 
@@ -161,18 +166,14 @@ impl epi::App for MyApp {
                 if text_new.ne(clipboard_last) {
                     *clipboard_last = text_new.clone();
                     *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
-                    let _ = task_chan.send((
-                        text_new.clone(),
-                        target_lang.clone(),
-                        source_lang.clone(),
-                    ));
+                    let _ = task_chan.send((text_new, *target_lang, *source_lang));
                 }
             }
         }
 
         if let Ok(text_new) = rx_this.try_recv() {
             *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
-            let _ = task_chan.send((text_new.clone(), target_lang.clone(), source_lang.clone()));
+            let _ = task_chan.send((text_new, *target_lang, *source_lang));
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -188,15 +189,17 @@ impl epi::App for MyApp {
                                 ui.selectable_value(source_lang, i, i.description());
                             }
                         });
+
                     if ui.add(egui::Button::new(" ⇌ ").frame(false)).clicked() {
-                        let tmp_target_lang = target_lang.clone();
+                        let tmp_target_lang = *target_lang;
                         *target_lang = if *source_lang == deepl::Lang::Auto {
                             deepl::Lang::EN
                         } else {
-                            source_lang.clone()
+                            *source_lang
                         };
                         *source_lang = tmp_target_lang;
                     };
+
                     egui::ComboBox::from_id_source(egui::Id::new("target_lang_ComboBox"))
                         .selected_text(target_lang.description())
                         .width(combobox_width)
@@ -206,42 +209,64 @@ impl epi::App for MyApp {
                                 ui.selectable_value(target_lang, i, i.description());
                             }
                         });
-                    ui.scope(|ui| {
+
+                    ui.vertical_centered_justified(|ui| {
                         ui.with_layout(egui::Layout::right_to_left(), |ui| {
                             ui.hyperlink_to(
                                 format!("{} GitHub", egui::special_emojis::GITHUB),
                                 "https://github.com/zu1k/copy-translator",
                             );
 
-                            ui.add(super::toggle_switch::toggle(show_box))
-                                .on_hover_text("显示窗口框，用来修改窗口大小和移动位置");
+                            let drag_button = ui.add(egui::Button::new("○").frame(false));
+                            if drag_button.clicked() {
+                                *show_box = !*show_box;
+                            } else if ctx.input().key_pressed(egui::Key::D)
+                                && drag_button.is_pointer_button_down_on()
+                            {
+                                frame.drag_window(true);
+                            }
                         });
                     });
 
-                    if source_lang.clone() != old_source_lang
-                        || target_lang.clone() != old_target_lang
-                    {
-                        let _ = task_chan.send((
-                            text.clone(),
-                            target_lang.clone(),
-                            source_lang.clone(),
-                        ));
+                    if *source_lang != old_source_lang || *target_lang != old_target_lang {
+                        let _ = task_chan.send((text.clone(), *target_lang, *source_lang));
                     };
                 });
 
                 ui.separator();
 
-                egui::ScrollArea::auto_sized().show(ui, |ui| {
-                    ui.add(
-                        egui::TextEdit::multiline(text)
-                            .desired_width(2000.0)
-                            .desired_rows(7)
-                            .lock_focus(true),
-                    );
-                });
+                egui::ScrollArea::vertical()
+                    .auto_shrink([false; 2])
+                    .show(ui, |ui| {
+                        ui.add(
+                            egui::TextEdit::multiline(text)
+                                .desired_width(2000.0)
+                                .desired_rows(7)
+                                .frame(false)
+                                .lock_focus(true),
+                        )
+                    });
             });
         });
-        frame.set_window_size(ctx.used_size());
+
+        let mut used_size = ctx.used_size();
+        if text.len() < 600 {
+            if (used_size.x - 600.0).abs() < f32::EPSILON {
+                used_size.x = 500.0;
+            }
+            if (used_size.y - 300.0).abs() < f32::EPSILON {
+                used_size.y = 200.0;
+            }
+        } else {
+            if (used_size.x - 500.0).abs() < f32::EPSILON {
+                used_size.x = 600.0;
+            }
+            if text.len() > 1000 && (used_size.y - 200.0).abs() < f32::EPSILON {
+                used_size.y = 300.0;
+            }
+        }
+
+        frame.set_window_size(used_size);
         frame.set_decorations(*show_box);
 
         // repaint everytime otherwise other events are needed to trigger

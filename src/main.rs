@@ -1,21 +1,15 @@
 #![windows_subsystem = "windows"]
 #![cfg_attr(not(debug_assertions), deny(warnings))]
-#![warn(clippy::all, rust_2018_idioms)]
 
-use copy_translator::ui;
-use copy_translator::HotkeySetting;
-use copy_translator::SETTINGS;
-use deepl;
-use std::io::Cursor;
-use std::sync::mpsc;
-use std::thread;
-use log::warn;
+use copy_translator::{ui, HotkeySetting, SETTINGS};
+use log::*;
+use std::{io::Cursor, sync::mpsc, thread};
 
 fn main() {
     if let Ok(path) = std::env::current_exe() {
         let settings_path = match path.parent() {
             Some(parent) => parent.join("settings"),
-            None => std::path::PathBuf::from("settings")
+            None => std::path::PathBuf::from("settings"),
         };
         let mut settings = SETTINGS.write().unwrap();
         if let Err(err) = settings.merge(config::File::from(settings_path)) {
@@ -84,15 +78,17 @@ fn main() {
 
                 let mouse_event_rx = mouse_event_rx_wrap.clone();
                 let event_tx_mouse = event_tx.clone();
-                thread::spawn(move || loop {
-                    let rx = mouse_event_rx.lock().unwrap();
-                    match rx.recv() {
-                        Ok(event) => {
-                            if let Err(_) = event_tx_mouse.send(event) {
-                                break;
+                thread::spawn(move || {
+                    loop {
+                        let rx = mouse_event_rx.lock().unwrap();
+                        match rx.recv() {
+                            Ok(event) => {
+                                if event_tx_mouse.send(event).is_err() {
+                                    break;
+                                }
                             }
+                            Err(_) => break,
                         }
-                        Err(_) => break,
                     }
                 });
                 hotkey_settings.unregister_all();
@@ -101,7 +97,7 @@ fn main() {
                 let native_options = eframe::NativeOptions {
                     always_on_top: true,
                     decorated: false,
-                    initial_window_size: Some(egui::vec2(500.0, 196.0)),
+                    initial_window_size: Some(egui::vec2(500.0, 200.0)),
                     icon_data: Some(ico_data.clone()),
                     drag_and_drop_support: true,
                     ..Default::default()

@@ -1,9 +1,8 @@
 mod font;
 mod hotkey;
 pub mod ui;
-pub use hotkey::{ctrl_c, HotkeySetting};
-mod toggle_switch;
 use config::Config;
+pub use hotkey::{ctrl_c, HotkeySetting};
 use std::sync::RwLock;
 
 #[macro_use]

@@ -1,9 +1,7 @@
-use enigo::{Enigo, Key, KeyboardControllable};
-use std::sync::mpsc::Sender;
-use std::thread;
-use std::time::Duration;
-use tauri_hotkey::{parse_hotkey, HotkeyManager};
 use crate::SETTINGS;
+use enigo::{Enigo, Key, KeyboardControllable};
+use std::{sync::mpsc::Sender, thread, time::Duration};
+use tauri_hotkey::{parse_hotkey, HotkeyManager};
 
 pub struct HotkeySetting {
     launch: String,
@@ -39,17 +37,17 @@ impl HotkeySetting {
     }
 
     pub fn register_hotkey(&mut self, tx: Sender<String>) {
-        let ref mut hk_mng = self.hk_mng;
+        let hk_mng = &mut self.hk_mng;
 
-        // CTRL+SHIFT+D quit
+        // quit
         if let Err(err) = hk_mng.register(parse_hotkey(self.quit.as_str()).unwrap(), move || {
             std::process::exit(0)
         }) {
             panic!("{:?}", err)
         }
 
-        // CTRL+D launch
-        let tx_d = tx.clone();
+        // launch
+        let tx_d = tx;
         if let Err(err) = hk_mng.register(parse_hotkey(self.launch.as_str()).unwrap(), move || {
             if let Some(text) = ctrl_c() {
                 if let Err(err) = tx_d.send(text) {
