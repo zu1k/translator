@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Copy Translator
+Comment=Copy Translator
+GenericName=Copy Translator
+Keywords=Copy Translator;
+Exec=copy-translator
+Icon=/usr/share/pixmaps/copy-translator.ico
+Terminal=false
+Type=Application
+Categories=Utility;

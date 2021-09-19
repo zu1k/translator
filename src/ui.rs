@@ -1,14 +1,11 @@
-use crate::font;
-
-#[cfg(not(unix))]
-use crate::HotkeySetting;
-
-use crate::ctrl_c;
+use crate::{ctrl_c, font};
 use deepl;
 use eframe::{egui, epi};
 use std::{fmt::Debug, sync::mpsc};
 
-#[cfg(not(unix))]
+#[cfg(target_os = "windows")]
+use crate::HotkeySetting;
+#[cfg(target_os = "windows")]
 use std::sync::mpsc::Receiver;
 
 #[derive(Debug, Clone, Copy)]
@@ -64,9 +61,9 @@ pub struct MyApp {
     event_rx: mpsc::Receiver<Event>,
     clipboard_last: String,
 
-    #[cfg(not(unix))]
+    #[cfg(target_os = "windows")]
     hk_setting: HotkeySetting,
-    #[cfg(not(unix))]
+    #[cfg(target_os = "windows")]
     rx_this: Receiver<String>,
 }
 
@@ -81,7 +78,7 @@ impl MyApp {
         event_rx: mpsc::Receiver<Event>,
         task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
     ) -> Self {
-        #[cfg(not(unix))]
+        #[cfg(target_os = "windows")]
         {
             let (tx, rx) = mpsc::channel();
             let mut hk_setting = HotkeySetting::default();
@@ -100,9 +97,9 @@ impl MyApp {
             event_rx,
             clipboard_last: String::new(),
 
-            #[cfg(not(unix))]
+            #[cfg(target_os = "windows")]
             hk_setting,
-            #[cfg(not(unix))]
+            #[cfg(target_os = "windows")]
             rx_this: rx,
         }
     }
@@ -121,7 +118,7 @@ impl epi::App for MyApp {
     ) {
         font::install_fonts(_ctx);
 
-        if self.text.len() == 0 {
+        if self.text.is_empty() {
             self.text = "请选中需要翻译的文字触发划词翻译".to_string();
         } else {
             let _ = self
@@ -144,16 +141,16 @@ impl epi::App for MyApp {
             mouse_state,
             event_rx,
             clipboard_last,
-            #[cfg(not(unix))]
+            #[cfg(target_os = "windows")]
             hk_setting,
-            #[cfg(not(unix))]
+            #[cfg(target_os = "windows")]
             rx_this,
         } = self;
         let old_source_lang = *source_lang;
         let old_target_lang = *target_lang;
 
         if ctx.input().key_pressed(egui::Key::Escape) {
-            #[cfg(not(unix))]
+            #[cfg(target_os = "windows")]
             hk_setting.unregister_all();
             frame.quit()
         }
@@ -190,7 +187,7 @@ impl epi::App for MyApp {
             }
         }
 
-        #[cfg(not(unix))]
+        #[cfg(target_os = "windows")]
         if let Ok(text_new) = rx_this.try_recv() {
             *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
             let _ = task_chan.send((text_new, *target_lang, *source_lang));
@@ -243,7 +240,7 @@ impl epi::App for MyApp {
                             } else if ctx.input().key_pressed(egui::Key::D)
                                 && drag_button.is_pointer_button_down_on()
                             {
-                                frame.drag_window(true);
+                                frame.drag_window();
                             }
                         });
                     });
