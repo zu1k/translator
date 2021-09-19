@@ -806,7 +806,7 @@ dependencies = [
 [[package]]
 name = "eframe"
 version = "0.14.0"
-source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#25253c15eaaedb48cf8f380639e4c76f1176d4c9"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#9bcf2b057f9178aea01f088598cc1b7acad7bbd5"
 dependencies = [
  "egui",
  "egui_glium",
@@ -817,7 +817,7 @@ dependencies = [
 [[package]]
 name = "egui"
 version = "0.14.2"
-source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#25253c15eaaedb48cf8f380639e4c76f1176d4c9"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#9bcf2b057f9178aea01f088598cc1b7acad7bbd5"
 dependencies = [
  "epaint",
  "ron",
@@ -827,7 +827,7 @@ dependencies = [
 [[package]]
 name = "egui_glium"
 version = "0.14.0"
-source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#25253c15eaaedb48cf8f380639e4c76f1176d4c9"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#9bcf2b057f9178aea01f088598cc1b7acad7bbd5"
 dependencies = [
  "copypasta",
  "directories-next",
@@ -843,7 +843,7 @@ dependencies = [
 [[package]]
 name = "egui_web"
 version = "0.14.1"
-source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#25253c15eaaedb48cf8f380639e4c76f1176d4c9"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#9bcf2b057f9178aea01f088598cc1b7acad7bbd5"
 dependencies = [
  "egui",
  "epi",
@@ -864,7 +864,7 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 [[package]]
 name = "emath"
 version = "0.14.0"
-source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#25253c15eaaedb48cf8f380639e4c76f1176d4c9"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#9bcf2b057f9178aea01f088598cc1b7acad7bbd5"
 dependencies = [
  "serde 1.0.130",
 ]
@@ -894,7 +894,7 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.14.0"
-source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#25253c15eaaedb48cf8f380639e4c76f1176d4c9"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#9bcf2b057f9178aea01f088598cc1b7acad7bbd5"
 dependencies = [
  "ab_glyph",
  "ahash",
@@ -907,7 +907,7 @@ dependencies = [
 [[package]]
 name = "epi"
 version = "0.14.0"
-source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#25253c15eaaedb48cf8f380639e4c76f1176d4c9"
+source = "git+https://github.com/zu1k/egui.git?branch=copy-translator#9bcf2b057f9178aea01f088598cc1b7acad7bbd5"
 dependencies = [
  "egui",
  "ron",
