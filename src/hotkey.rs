@@ -12,8 +12,8 @@ pub struct HotkeySetting {
 impl Default for HotkeySetting {
     fn default() -> Self {
         let mut hotkey_settings = Self {
-            launch: "CTRL+D".to_string(),
-            quit: "CTRL+SHIFT+D".to_string(),
+            launch: "CMDORCTRL+D".to_string(),
+            quit: "CMDORCTRL+SHIFT+D".to_string(),
             hk_mng: HotkeyManager::new(),
         };
         let settings = SETTINGS.read().unwrap();

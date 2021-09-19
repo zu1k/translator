@@ -1,12 +1,16 @@
-use crate::{font, HotkeySetting};
+use crate::font;
+
+#[cfg(not(unix))]
+use crate::HotkeySetting;
 
 use crate::ctrl_c;
 use deepl;
 use eframe::{egui, epi};
-use std::{
-    fmt::Debug,
-    sync::mpsc::{self, Receiver},
-};
+use std::{fmt::Debug, sync::mpsc};
+
+#[cfg(not(unix))]
+use std::sync::mpsc::Receiver;
+
 #[derive(Debug, Clone, Copy)]
 pub struct MouseState {
     last_event: u8,
@@ -54,14 +58,16 @@ pub struct MyApp {
     lang_list_with_auto: Vec<deepl::Lang>,
     lang_list: Vec<deepl::Lang>,
     task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
-    rx_this: Receiver<String>,
     show_box: bool,
     mouse_state: MouseState,
 
     event_rx: mpsc::Receiver<Event>,
     clipboard_last: String,
 
+    #[cfg(not(unix))]
     hk_setting: HotkeySetting,
+    #[cfg(not(unix))]
+    rx_this: Receiver<String>,
 }
 
 pub enum Event {
@@ -75,9 +81,12 @@ impl MyApp {
         event_rx: mpsc::Receiver<Event>,
         task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
     ) -> Self {
-        let (tx, rx) = mpsc::channel();
-        let mut hk_setting = HotkeySetting::default();
-        hk_setting.register_hotkey(tx);
+        #[cfg(not(unix))]
+        {
+            let (tx, rx) = mpsc::channel();
+            let mut hk_setting = HotkeySetting::default();
+            hk_setting.register_hotkey(tx);
+        }
         Self {
             text,
             source_lang: deepl::Lang::Auto,
@@ -86,13 +95,15 @@ impl MyApp {
             lang_list_with_auto: deepl::Lang::lang_list_with_auto(),
             lang_list: deepl::Lang::lang_list(),
             task_chan,
-            rx_this: rx,
             show_box: false,
             mouse_state: MouseState::new(),
             event_rx,
             clipboard_last: String::new(),
 
+            #[cfg(not(unix))]
             hk_setting,
+            #[cfg(not(unix))]
+            rx_this: rx,
         }
     }
 }
@@ -109,11 +120,16 @@ impl epi::App for MyApp {
         _storage: Option<&dyn epi::Storage>,
     ) {
         font::install_fonts(_ctx);
-        let _ = self
-            .task_chan
-            .send((self.text.clone(), self.target_lang, self.source_lang));
-        self.clipboard_last = self.text.clone();
-        self.text = "正在翻译中...\r\n\r\n".to_string() + &self.text;
+
+        if self.text.len() == 0 {
+            self.text = "请选中需要翻译的文字触发划词翻译".to_string();
+        } else {
+            let _ = self
+                .task_chan
+                .send((self.text.clone(), self.target_lang, self.source_lang));
+            self.clipboard_last = self.text.clone();
+            self.text = "正在翻译中...\r\n\r\n".to_string() + &self.text;
+        }
     }
 
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
@@ -124,17 +140,20 @@ impl epi::App for MyApp {
             lang_list_with_auto,
             lang_list,
             task_chan,
-            rx_this,
             show_box,
             mouse_state,
             event_rx,
             clipboard_last,
+            #[cfg(not(unix))]
             hk_setting,
+            #[cfg(not(unix))]
+            rx_this,
         } = self;
         let old_source_lang = *source_lang;
         let old_target_lang = *target_lang;
 
         if ctx.input().key_pressed(egui::Key::Escape) {
+            #[cfg(not(unix))]
             hk_setting.unregister_all();
             frame.quit()
         }
@@ -171,6 +190,7 @@ impl epi::App for MyApp {
             }
         }
 
+        #[cfg(not(unix))]
         if let Ok(text_new) = rx_this.try_recv() {
             *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
             let _ = task_chan.send((text_new, *target_lang, *source_lang));

@@ -10,6 +10,7 @@ codegen-units = 1
 
 [dependencies]
 cli-clipboard = "0.2" # a fork version of cliboard, add wayland support
+cfg-if = "1"
 config = "0.11"
 deepl = { path = "./deepl", default-features = false } # features must be specified, `local` or `online`
 eframe = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
