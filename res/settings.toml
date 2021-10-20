@@ -1,4 +1,8 @@
+[window]
 font_size_plus = 1
+[window.size]
+width = 560
+height = 260
 
 [hotkey]
 launch = "CTRL+D"

@@ -21,7 +21,7 @@ pub fn install_fonts(egui_ctx: &egui::CtxRef) {
 
     let font_size_plus = {
         let settings = SETTINGS.read().unwrap();
-        settings.get_float("font_size_plus").unwrap_or(0.0) as f32
+        settings.get_float("window.font_size_plus").unwrap_or(0.0) as f32
     };
 
     let mut family_and_size = BTreeMap::new();

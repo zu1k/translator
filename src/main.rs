@@ -20,6 +20,12 @@ cfg_if::cfg_if! {
                 }
             }
 
+            let (width, height) = {
+                let settings = SETTINGS.read().unwrap();
+                (settings.get_float("window.size.width").unwrap_or(500.0) as f32,
+                settings.get_float("window.size.height").unwrap_or(200.0) as f32)
+            };
+
             let (tx_hk, rx) = mpsc::channel();
 
             let mut hotkey_settings = HotkeySetting::default();
@@ -100,7 +106,7 @@ cfg_if::cfg_if! {
                         let native_options = eframe::NativeOptions {
                             always_on_top: true,
                             decorated: false,
-                            initial_window_size: Some(egui::vec2(500.0, 200.0)),
+                            initial_window_size: Some(egui::vec2(width, height)),
                             icon_data: Some(ico_data.clone()),
                             drag_and_drop_support: true,
                             ..Default::default()
@@ -123,6 +129,12 @@ cfg_if::cfg_if! {
                     warn!("settings merge failed, use default settings, err: {}", err);
                 }
             }
+
+            let (width, height) = {
+                let settings = SETTINGS.read().unwrap();
+                (settings.get_float("window.size.width").unwrap_or(500.0) as f32,
+                settings.get_float("window.size.height").unwrap_or(200.0) as f32)
+            };
 
             let (event_tx, event_rx) = mpsc::sync_channel(1);
             let (task_tx, task_rx) = mpsc::sync_channel(1);
@@ -185,7 +197,7 @@ cfg_if::cfg_if! {
             let native_options = eframe::NativeOptions {
                 always_on_top: true,
                 decorated: false,
-                initial_window_size: Some(egui::vec2(500.0, 200.0)),
+                initial_window_size: Some(egui::vec2(width, height)),
                 icon_data: Some(ico_data),
                 drag_and_drop_support: true,
                 ..Default::default()
