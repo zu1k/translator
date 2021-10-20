@@ -266,27 +266,7 @@ impl epi::App for MyApp {
             });
         });
 
-        let mut used_size = ctx.used_size();
-        if text.len() < 600 {
-            if (used_size.x - 600.0).abs() < f32::EPSILON {
-                used_size.x = 500.0;
-            }
-            if (used_size.y - 300.0).abs() < f32::EPSILON {
-                used_size.y = 200.0;
-            }
-        } else {
-            if (used_size.x - 500.0).abs() < f32::EPSILON {
-                used_size.x = 600.0;
-            }
-            if text.len() > 1000 && (used_size.y - 200.0).abs() < f32::EPSILON {
-                used_size.y = 300.0;
-            }
-        }
-
-        frame.set_window_size(used_size);
         frame.set_decorations(*show_box);
-
-        // repaint everytime otherwise other events are needed to trigger
         ctx.request_repaint();
     }
 }
