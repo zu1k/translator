@@ -1,13 +1,13 @@
 #![windows_subsystem = "windows"]
 #![cfg_attr(not(debug_assertions), deny(warnings))]
 
-use copy_translator::ui;
+use copy_translator::{ui, SETTINGS};
 use log::*;
 use std::{io::Cursor, sync::mpsc, thread};
 
 cfg_if::cfg_if! {
     if #[cfg(target_os="windows")] {
-        use copy_translator::{HotkeySetting, SETTINGS};
+        use copy_translator::HotkeySetting;
         fn run() {
             if let Ok(path) = std::env::current_exe() {
                 let settings_path = match path.parent() {
@@ -117,6 +117,13 @@ cfg_if::cfg_if! {
     } else {
         use copy_translator::ctrl_c;
         fn run() {
+            {
+                let mut settings = SETTINGS.write().unwrap();
+                if let Err(err) = settings.merge(config::File::with_name("/etc/copy-translator/settings")) {
+                    warn!("settings merge failed, use default settings, err: {}", err);
+                }
+            }
+
             let (event_tx, event_rx) = mpsc::sync_channel(1);
             let (task_tx, task_rx) = mpsc::sync_channel(1);
 

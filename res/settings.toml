@@ -1,3 +1,5 @@
+font_size_plus = 1
+
 [hotkey]
 launch = "CTRL+D"
 quit = "CTRL+SHIFT+D"

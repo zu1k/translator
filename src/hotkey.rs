@@ -69,7 +69,7 @@ pub fn ctrl_c() -> Option<String> {
     enigo.key_down(Key::Control);
     enigo.key_click(Key::Layout('c'));
     enigo.key_up(Key::Control);
-    thread::sleep(Duration::from_millis(50));
+    thread::sleep(Duration::from_millis(200));
     if let Ok(text) = cli_clipboard::get_contents() {
         Some(text)
     } else {

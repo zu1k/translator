@@ -1,3 +1,4 @@
+use crate::SETTINGS;
 use eframe::egui::{self, FontDefinitions, FontFamily, TextStyle};
 use std::collections::BTreeMap;
 
@@ -18,12 +19,32 @@ pub fn install_fonts(egui_ctx: &egui::CtxRef) {
         .unwrap()
         .insert(0, "LXGWWenKai-Regular".to_owned());
 
+    let font_size_plus = {
+        let settings = SETTINGS.read().unwrap();
+        settings.get_float("font_size_plus").unwrap_or(0.0) as f32
+    };
+
     let mut family_and_size = BTreeMap::new();
-    family_and_size.insert(TextStyle::Small, (FontFamily::Proportional, 18.0));
-    family_and_size.insert(TextStyle::Body, (FontFamily::Proportional, 20.0));
-    family_and_size.insert(TextStyle::Button, (FontFamily::Proportional, 20.0));
-    family_and_size.insert(TextStyle::Heading, (FontFamily::Proportional, 28.0));
-    family_and_size.insert(TextStyle::Monospace, (FontFamily::Monospace, 18.0));
+    family_and_size.insert(
+        TextStyle::Small,
+        (FontFamily::Proportional, 18.0 + font_size_plus),
+    );
+    family_and_size.insert(
+        TextStyle::Body,
+        (FontFamily::Proportional, 20.0 + font_size_plus),
+    );
+    family_and_size.insert(
+        TextStyle::Button,
+        (FontFamily::Proportional, 20.0 + font_size_plus),
+    );
+    family_and_size.insert(
+        TextStyle::Heading,
+        (FontFamily::Proportional, 28.0 + font_size_plus),
+    );
+    family_and_size.insert(
+        TextStyle::Monospace,
+        (FontFamily::Monospace, 18.0 + font_size_plus),
+    );
     fonts.family_and_size = family_and_size;
 
     egui_ctx.set_fonts(fonts);
