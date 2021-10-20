@@ -1,8 +1,8 @@
+use crate::api::get_online_api;
+pub use crate::Lang;
 use reqwest;
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Runtime;
-pub use crate::Lang;
-use crate::api::get_online_api;
 
 #[derive(Serialize, Debug)]
 struct Req {
@@ -59,8 +59,9 @@ pub async fn translate_async(
 pub fn translate(
     text: String,
     target_lang: Lang,
-    source_lang: Lang,
+    source_lang: Option<Lang>,
 ) -> Result<String, Box<dyn std::error::Error>> {
+    let source_lang = source_lang.unwrap_or_default();
     Runtime::new()
         .unwrap()
         .block_on(translate_async(text, target_lang, source_lang))

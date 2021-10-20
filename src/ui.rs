@@ -54,7 +54,7 @@ pub struct MyApp {
 
     lang_list_with_auto: Vec<deepl::Lang>,
     lang_list: Vec<deepl::Lang>,
-    task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
+    task_chan: mpsc::SyncSender<(String, deepl::Lang, Option<deepl::Lang>)>,
     show_box: bool,
     mouse_state: MouseState,
 
@@ -76,7 +76,7 @@ impl MyApp {
     pub fn new(
         text: String,
         event_rx: mpsc::Receiver<Event>,
-        task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
+        task_chan: mpsc::SyncSender<(String, deepl::Lang, Option<deepl::Lang>)>,
     ) -> Self {
         #[cfg(target_os = "windows")]
         {
@@ -121,9 +121,9 @@ impl epi::App for MyApp {
         if self.text.is_empty() {
             self.text = "请选中需要翻译的文字触发划词翻译".to_string();
         } else {
-            let _ = self
-                .task_chan
-                .send((self.text.clone(), self.target_lang, self.source_lang));
+            let _ =
+                self.task_chan
+                    .send((self.text.clone(), self.target_lang, Some(self.source_lang)));
             self.clipboard_last = self.text.clone();
             self.text = "正在翻译中...\r\n\r\n".to_string() + &self.text;
         }
@@ -182,7 +182,7 @@ impl epi::App for MyApp {
                 if text_new.ne(clipboard_last) {
                     *clipboard_last = text_new.clone();
                     *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
-                    let _ = task_chan.send((text_new, *target_lang, *source_lang));
+                    let _ = task_chan.send((text_new, *target_lang, Some(*source_lang)));
                 }
             }
         }
@@ -246,7 +246,7 @@ impl epi::App for MyApp {
                     });
 
                     if *source_lang != old_source_lang || *target_lang != old_target_lang {
-                        let _ = task_chan.send((text.clone(), *target_lang, *source_lang));
+                        let _ = task_chan.send((text.clone(), *target_lang, Some(*source_lang)));
                     };
                 });
 

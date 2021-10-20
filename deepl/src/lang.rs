@@ -33,6 +33,12 @@ pub enum Lang {
     SV,
 }
 
+impl Default for Lang {
+    fn default() -> Self {
+        Lang::Auto
+    }
+}
+
 impl Lang {
     pub fn description(&self) -> &'static str {
         let lang = *self;
