@@ -79,11 +79,11 @@ impl MyApp {
         task_chan: mpsc::SyncSender<(String, deepl::Lang, Option<deepl::Lang>)>,
     ) -> Self {
         #[cfg(target_os = "windows")]
-        {
-            let (tx, rx) = mpsc::channel();
-            let mut hk_setting = HotkeySetting::default();
-            hk_setting.register_hotkey(tx);
-        }
+        let (tx, rx) = mpsc::channel();
+        #[cfg(target_os = "windows")]
+        let mut hk_setting = HotkeySetting::default();
+        #[cfg(target_os = "windows")]
+        hk_setting.register_hotkey(tx);
         Self {
             text,
             source_lang: deepl::Lang::Auto,
@@ -190,7 +190,7 @@ impl epi::App for MyApp {
         #[cfg(target_os = "windows")]
         if let Ok(text_new) = rx_this.try_recv() {
             *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
-            let _ = task_chan.send((text_new, *target_lang, *source_lang));
+            let _ = task_chan.send((text_new, *target_lang, Some(*source_lang)));
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
