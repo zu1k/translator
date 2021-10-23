@@ -1,7 +1,9 @@
 [package]
 name = "copy-translator"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
+build = "build.rs"
+crate-type = ["cdylib"]
 
 [profile.release]
 lto = true
@@ -27,8 +29,16 @@ copypasta = "0.7.1"
 ico = "0.1.0"
 rdev = "0.5.1"
 
-[target.'cfg(target_os="windows")'.build-dependencies]
+[build-dependencies]
 winres = "0.1"
+
+[package.metadata.winres]
+OriginalFilename = "CopyTranslator.exe"
+LegalCopyright = "Copyright © 2021 zu1k"
+ProductName = "CopyTranslator"
+ProductVersion = "0.1.0"
+FileDescription = "简单、轻量、好用的划词翻译软件，利用DeepL翻译"
+
 
 [features]
 default = ["local"]

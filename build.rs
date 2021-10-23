@@ -1,18 +1,17 @@
-// only build for windows
-#[cfg(target_os = "windows")]
+use std::env;
+
 fn main() {
-    // only build the resource for release builds
-    // as calling rc.exe might be slow
-    if std::env::var("PROFILE").unwrap() == "release" {
-        let mut res = winres::WindowsResource::new();
-        res.set_icon("res//icon.ico");
-        if let Err(e) = res.compile() {
-            eprint!("{}", e);
-            std::process::exit(1);
+    if env::var("PROFILE").unwrap() == "release" {
+        if let Ok(_) = env::var("CARGO_CFG_WINDOWS") {
+            let mut res = winres::WindowsResource::new();
+            if let Ok(host) = env::var("HOST") {
+                if host.contains("linux") {
+                    res.set_toolkit_path("/usr/bin")
+                        .set_windres_path("x86_64-w64-mingw32-windres");
+                }
+            }
+            res.set_icon("res/copy-translator.ico").set_language(0x04);
+            res.compile().unwrap();
         }
     }
 }
-
-// nothing to do for other operating systems
-#[cfg(not(target_os = "windows"))]
-fn main() {}
