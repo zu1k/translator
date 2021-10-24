@@ -3,19 +3,22 @@
 
 #[macro_use]
 extern crate lazy_static;
+
 mod font;
 mod hotkey;
 pub mod ui;
 use config::Config;
 pub use hotkey::{ctrl_c, HotkeySetting};
-use std::sync::RwLock;
+use log::*;
+use std::{
+    io::Cursor,
+    sync::{mpsc, RwLock},
+    thread,
+};
 
 lazy_static! {
     pub static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
 }
-
-use log::*;
-use std::{io::Cursor, sync::mpsc, thread};
 
 cfg_if::cfg_if! {
     if #[cfg(target_os="windows")] {
