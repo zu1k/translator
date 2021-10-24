@@ -1,13 +1,24 @@
 #![windows_subsystem = "windows"]
 #![cfg_attr(not(debug_assertions), deny(warnings))]
 
-use copy_translator::{ui, SETTINGS};
+#[macro_use]
+extern crate lazy_static;
+mod font;
+mod hotkey;
+pub mod ui;
+use config::Config;
+pub use hotkey::{ctrl_c, HotkeySetting};
+use std::sync::RwLock;
+
+lazy_static! {
+    pub static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
+}
+
 use log::*;
 use std::{io::Cursor, sync::mpsc, thread};
 
 cfg_if::cfg_if! {
     if #[cfg(target_os="windows")] {
-        use copy_translator::HotkeySetting;
         fn run() {
             if let Ok(path) = std::env::current_exe() {
                 let settings_path = match path.parent() {
@@ -121,7 +132,6 @@ cfg_if::cfg_if! {
             }
         }
     } else {
-        use copy_translator::ctrl_c;
         fn run() {
             {
                 let mut settings = SETTINGS.write().unwrap();
