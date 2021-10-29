@@ -1,6 +1,7 @@
 use crate::{ctrl_c, font};
 use deepl;
 use eframe::{egui, epi};
+use epaint::Color32;
 use std::{fmt::Debug, sync::mpsc};
 
 #[cfg(target_os = "windows")]
@@ -12,6 +13,9 @@ use std::sync::mpsc::Receiver;
 pub struct MouseState {
     last_event: u8,
 }
+
+const LINK_COLOR_DOING: Color32 = Color32::GREEN;
+const LINK_COLOR_COMMON: Color32 = Color32::GRAY;
 
 impl MouseState {
     fn new() -> Self {
@@ -60,6 +64,7 @@ pub struct MyApp {
 
     event_rx: mpsc::Receiver<Event>,
     clipboard_last: String,
+    link_color: Color32,
 
     #[cfg(target_os = "windows")]
     hk_setting: HotkeySetting,
@@ -96,6 +101,7 @@ impl MyApp {
             mouse_state: MouseState::new(),
             event_rx,
             clipboard_last: String::new(),
+            link_color: Color32::GRAY,
 
             #[cfg(target_os = "windows")]
             hk_setting,
@@ -125,7 +131,7 @@ impl epi::App for MyApp {
                 self.task_chan
                     .send((self.text.clone(), self.target_lang, Some(self.source_lang)));
             self.clipboard_last = self.text.clone();
-            self.text = "正在翻译中...\r\n\r\n".to_string() + &self.text;
+            self.link_color = LINK_COLOR_DOING;
         }
     }
 
@@ -141,6 +147,7 @@ impl epi::App for MyApp {
             mouse_state,
             event_rx,
             clipboard_last,
+            link_color,
             #[cfg(target_os = "windows")]
             hk_setting,
             #[cfg(target_os = "windows")]
@@ -158,6 +165,7 @@ impl epi::App for MyApp {
         while let Ok(event) = event_rx.try_recv() {
             match event {
                 Event::TextSet(text_new) => {
+                    *link_color = LINK_COLOR_COMMON;
                     *text = text_new;
                 }
                 Event::MouseEvent(mouse_event) => match mouse_event {
@@ -181,7 +189,8 @@ impl epi::App for MyApp {
             if let Some(text_new) = ctrl_c() {
                 if text_new.ne(clipboard_last) {
                     *clipboard_last = text_new.clone();
-                    *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
+                    *text = text_new.clone();
+                    *link_color = LINK_COLOR_DOING;
                     let _ = task_chan.send((text_new, *target_lang, Some(*source_lang)));
                 }
             }
@@ -189,7 +198,8 @@ impl epi::App for MyApp {
 
         #[cfg(target_os = "windows")]
         if let Ok(text_new) = rx_this.try_recv() {
-            *text = "正在翻译中...\r\n\r\n".to_string() + &text_new;
+            *text = text_new.clone();
+            *link_color = LINK_COLOR_DOING;
             let _ = task_chan.send((text_new, *target_lang, Some(*source_lang)));
         }
 
@@ -226,26 +236,34 @@ impl epi::App for MyApp {
                                 ui.selectable_value(target_lang, i, i.description());
                             }
                         });
+                    if ui.add(egui::Button::new("翻译")).clicked() {
+                        let _ = task_chan.send((text.clone(), *target_lang, Some(*source_lang)));
+                        *link_color = LINK_COLOR_DOING;
+                    };
 
                     ui.vertical_centered_justified(|ui| {
                         ui.with_layout(egui::Layout::right_to_left(), |ui| {
+                            ui.visuals_mut().hyperlink_color = *link_color;
                             ui.hyperlink_to(
-                                format!("{} GitHub", egui::special_emojis::GITHUB),
+                                egui::special_emojis::GITHUB,
                                 "https://github.com/zu1k/copy-translator",
                             );
 
-                            let drag_button = ui.add(egui::Button::new("○").frame(false));
-                            if drag_button.clicked() {
+                            if ui.add(egui::Button::new("□").frame(false)).clicked() {
                                 *show_box = !*show_box;
-                            } else if ctx.input().key_pressed(egui::Key::D)
-                                && drag_button.is_pointer_button_down_on()
+                                frame.set_decorations(*show_box);
+                            };
+                            if ui
+                                .add(egui::Button::new("○").frame(false))
+                                .is_pointer_button_down_on()
                             {
                                 frame.drag_window();
-                            }
+                            };
                         });
                     });
 
                     if *source_lang != old_source_lang || *target_lang != old_target_lang {
+                        *link_color = LINK_COLOR_DOING;
                         let _ = task_chan.send((text.clone(), *target_lang, Some(*source_lang)));
                     };
                 });
@@ -266,7 +284,6 @@ impl epi::App for MyApp {
             });
         });
 
-        frame.set_decorations(*show_box);
         ctx.request_repaint();
     }
 }

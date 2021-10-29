@@ -17,6 +17,7 @@ deepl = { path = "./deepl", default-features = false } # features must be specif
 eframe = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 egui = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 egui_glium = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
+epaint = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 epi = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 enigo = { git = "https://github.com/enigo-rs/enigo" }
 glium = "0.30"
