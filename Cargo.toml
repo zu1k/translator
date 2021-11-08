@@ -1,6 +1,6 @@
 [package]
 name = "copy-translator"
-version = "0.1.0"
+version = "0.2.4"
 edition = "2021"
 build = "build.rs"
 
@@ -21,13 +21,13 @@ epaint = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" 
 epi = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
 enigo = { git = "https://github.com/enigo-rs/enigo" }
 glium = "0.30"
-lazy_static = "1.4.0"
+lazy_static = "1.4"
 log = "0.4"
-piet-common = "0.4.1"
-tauri-hotkey = "0.1.2"
-copypasta = "0.7.1"
-ico = "0.1.0"
-rdev = "0.5.1"
+piet-common = "0.4"
+tauri-hotkey = "0.1"
+copypasta = "0.7"
+ico = "0.1"
+rdev = "0.5"
 
 [build-dependencies]
 winres = "0.1"
@@ -36,7 +36,7 @@ winres = "0.1"
 OriginalFilename = "copy-translator.exe"
 LegalCopyright = "Copyright © 2021 zu1k"
 ProductName = "CopyTranslator"
-ProductVersion = "0.1.0"
+ProductVersion = "0.2.4"
 FileDescription = "CopyTranslator: 简单、轻量、好用的划词翻译软件，利用DeepL翻译"
 
 [features]

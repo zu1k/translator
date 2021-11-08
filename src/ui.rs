@@ -283,7 +283,9 @@ impl epi::App for MyApp {
                     });
             });
         });
-
         ctx.request_repaint();
+
+        #[cfg(windows)]
+        frame.set_window_size(ctx.used_size());
     }
 }
