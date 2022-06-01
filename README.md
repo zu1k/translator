@@ -17,19 +17,23 @@ Copy Translator 是使用Rust编写的翻译小工具
 
 ![使用截图](./res/pic.png)
 
-
 ### 搭建接口
 
 - https://github.com/zu1k/deepl-api-rs
 - https://hub.docker.com/r/zu1k/deepl
 
-```
+```sh
 docker run -itd -p 8080:80 zu1k/deepl
 ```
 
 ## 感谢列表
 
-- [CopyTranslator](https://copytranslator.github.io/): Electron版本CopyTranslator
 - [DeepL](https://deepl.com/): DeepL翻译
 - [LXGW WenKai](https://github.com/lxgw/LxgwWenKai): 霞鹜文楷字体
 - [egui](https://github.com/emilk/egui): 本工具使用的Gui库
+
+## Copyright
+
+**Copy Translator** © [zu1k](https://github.com/zu1k), Copyright reserved.<br>
+
+> Blog [zu1k.com](https://zu1k.com) · GitHub [@zu1k](https://github.com/zu1k) · Twitter [@zu1k_lv](https://twitter.com/zu1k_lv) · Telegram Channel [@peekfun](https://t.me/peekfun)
