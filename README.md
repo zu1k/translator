@@ -17,6 +17,16 @@ Copy Translator 是使用Rust编写的翻译小工具
 
 ![使用截图](./res/pic.png)
 
+
+### 搭建接口
+
+- https://github.com/zu1k/deepl-api-rs
+- https://hub.docker.com/r/zu1k/deepl
+
+```
+docker run -itd -p 8080:80 zu1k/deepl
+```
+
 ## 感谢列表
 
 - [CopyTranslator](https://copytranslator.github.io/): Electron版本CopyTranslator
