@@ -1,7 +1,6 @@
-use crate::{ctrl_c, font};
+use crate::{ctrl_c, font, SETTINGS};
 use deepl;
-use eframe::{egui, epi};
-use epaint::Color32;
+use egui::{self, epaint::Color32};
 use std::{fmt::Debug, sync::mpsc};
 
 #[cfg(target_os = "windows")]
@@ -58,7 +57,7 @@ pub struct MyApp {
 
     lang_list_with_auto: Vec<deepl::Lang>,
     lang_list: Vec<deepl::Lang>,
-    task_chan: mpsc::SyncSender<(String, deepl::Lang, Option<deepl::Lang>)>,
+    task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
     show_box: bool,
     mouse_state: MouseState,
 
@@ -81,16 +80,38 @@ impl MyApp {
     pub fn new(
         text: String,
         event_rx: mpsc::Receiver<Event>,
-        task_chan: mpsc::SyncSender<(String, deepl::Lang, Option<deepl::Lang>)>,
+        task_chan: mpsc::SyncSender<(String, deepl::Lang, deepl::Lang)>,
+        cc: &eframe::CreationContext<'_>,
     ) -> Self {
+        font::install_fonts(&cc.egui_ctx);
+
+        match {
+            let settings = SETTINGS.read().unwrap();
+            settings
+                .get_string("window.theme")
+                .unwrap_or("dark".to_string())
+                .as_str()
+        } {
+            "light" => cc.egui_ctx.set_visuals(egui::Visuals::light()),
+            _ => cc.egui_ctx.set_visuals(egui::Visuals::dark()),
+        }
+
         #[cfg(target_os = "windows")]
         let (tx, rx) = mpsc::channel();
         #[cfg(target_os = "windows")]
         let mut hk_setting = HotkeySetting::default();
         #[cfg(target_os = "windows")]
         hk_setting.register_hotkey(tx);
+
+        let mut text = text;
+        if text.is_empty() {
+            text = "请选中需要翻译的文字触发划词翻译".to_string();
+        } else {
+            let _ = task_chan.send((text.clone(), deepl::Lang::ZH, deepl::Lang::Auto));
+        }
+
         Self {
-            text,
+            text: text.clone(),
             source_lang: deepl::Lang::Auto,
             target_lang: deepl::Lang::ZH,
 
@@ -100,8 +121,8 @@ impl MyApp {
             show_box: false,
             mouse_state: MouseState::new(),
             event_rx,
-            clipboard_last: String::new(),
-            link_color: Color32::GRAY,
+            clipboard_last: text.clone(),
+            link_color: LINK_COLOR_DOING,
 
             #[cfg(target_os = "windows")]
             hk_setting,
@@ -111,31 +132,8 @@ impl MyApp {
     }
 }
 
-impl epi::App for MyApp {
-    fn name(&self) -> &str {
-        "Copy Translator"
-    }
-
-    fn setup(
-        &mut self,
-        _ctx: &egui::CtxRef,
-        _frame: &mut epi::Frame<'_>,
-        _storage: Option<&dyn epi::Storage>,
-    ) {
-        font::install_fonts(_ctx);
-
-        if self.text.is_empty() {
-            self.text = "请选中需要翻译的文字触发划词翻译".to_string();
-        } else {
-            let _ =
-                self.task_chan
-                    .send((self.text.clone(), self.target_lang, Some(self.source_lang)));
-            self.clipboard_last = self.text.clone();
-            self.link_color = LINK_COLOR_DOING;
-        }
-    }
-
-    fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let Self {
             text,
             source_lang,
@@ -191,7 +189,7 @@ impl epi::App for MyApp {
                     *clipboard_last = text_new.clone();
                     *text = text_new.clone();
                     *link_color = LINK_COLOR_DOING;
-                    let _ = task_chan.send((text_new, *target_lang, Some(*source_lang)));
+                    let _ = task_chan.send((text_new, *target_lang, *source_lang));
                 }
             }
         }
@@ -200,13 +198,13 @@ impl epi::App for MyApp {
         if let Ok(text_new) = rx_this.try_recv() {
             *text = text_new.clone();
             *link_color = LINK_COLOR_DOING;
-            let _ = task_chan.send((text_new, *target_lang, Some(*source_lang)));
+            let _ = task_chan.send((text_new, *target_lang, *source_lang));
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.vertical_centered_justified(|ui| {
-                ui.horizontal_wrapped(|ui| {
-                    let combobox_width = 120.0;
+            ui.vertical_centered(|ui| {
+                ui.horizontal_top(|ui| {
+                    let combobox_width = 145.0;
                     egui::ComboBox::from_id_source(egui::Id::new("source_lang_ComboBox"))
                         .selected_text(source_lang.description())
                         .width(combobox_width)
@@ -237,15 +235,15 @@ impl epi::App for MyApp {
                             }
                         });
                     if ui.add(egui::Button::new("翻译")).clicked() {
-                        let _ = task_chan.send((text.clone(), *target_lang, Some(*source_lang)));
+                        let _ = task_chan.send((text.clone(), *target_lang, *source_lang));
                         *link_color = LINK_COLOR_DOING;
                     };
 
-                    ui.vertical_centered_justified(|ui| {
+                    ui.horizontal_wrapped(|ui| {
                         ui.with_layout(egui::Layout::right_to_left(), |ui| {
                             ui.visuals_mut().hyperlink_color = *link_color;
                             ui.hyperlink_to(
-                                egui::special_emojis::GITHUB,
+                                egui::special_emojis::GITHUB.to_string(),
                                 "https://github.com/zu1k/copy-translator",
                             );
 
@@ -264,7 +262,7 @@ impl epi::App for MyApp {
 
                     if *source_lang != old_source_lang || *target_lang != old_target_lang {
                         *link_color = LINK_COLOR_DOING;
-                        let _ = task_chan.send((text.clone(), *target_lang, Some(*source_lang)));
+                        let _ = task_chan.send((text.clone(), *target_lang, *source_lang));
                     };
                 });
 

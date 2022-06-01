@@ -1,10 +1,11 @@
 [package]
 name = "copy-translator"
-version = "0.2.4"
+version = "0.3.0"
 edition = "2021"
 build = "build.rs"
 
 [profile.release]
+strip = true
 lto = true
 opt-level = "z"
 codegen-units = 1
@@ -12,18 +13,16 @@ codegen-units = 1
 [dependencies]
 cli-clipboard = "0.2" # a fork version of cliboard, add wayland support
 cfg-if = "1"
-config = "0.11"
-deepl = { path = "./deepl", default-features = false } # features must be specified, `local` or `online`
-eframe = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
-egui = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
-egui_glium = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
-epaint = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
-epi = { git = "https://github.com/zu1k/egui.git", branch = "copy-translator" }
-enigo = { git = "https://github.com/enigo-rs/enigo" }
-glium = "0.30"
+config = "0.13"
+deepl = { package = "deepl-api-client", version = "0.2" }
+eframe = "0.18"
+egui = "0.18"
+egui_glium = "0.18"
+enigo = "0"
+glium = "0.31"
 lazy_static = "1.4"
 log = "0.4"
-piet-common = "0.4"
+piet-common = "0.5"
 tauri-hotkey = "0.1"
 copypasta = "0.7"
 ico = "0.1"
@@ -34,13 +33,7 @@ winres = "0.1"
 
 [package.metadata.winres]
 OriginalFilename = "copy-translator.exe"
-LegalCopyright = "Copyright © 2021 zu1k"
+LegalCopyright = "Copyright © 2021-2022 zu1k"
 ProductName = "CopyTranslator"
-ProductVersion = "0.2.4"
+ProductVersion = "0.3.0"
 FileDescription = "CopyTranslator: 简单、轻量、好用的划词翻译软件，利用DeepL翻译"
-
-[features]
-default = ["local"]
-online = ["deepl/online"]
-local = ["deepl/local"]
-persistence = ["eframe/persistence", "egui/persistence", "egui_glium/persistence", "epi/persistence"]

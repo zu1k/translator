@@ -17,10 +17,10 @@ impl Default for HotkeySetting {
             hk_mng: HotkeyManager::new(),
         };
         let settings = SETTINGS.read().unwrap();
-        if let Ok(launch) = settings.get_str("hotkey.launch") {
+        if let Ok(launch) = settings.get_string("hotkey.launch") {
             hotkey_settings.set_launch(launch);
         }
-        if let Ok(quit) = settings.get_str("hotkey.quit") {
+        if let Ok(quit) = settings.get_string("hotkey.quit") {
             hotkey_settings.set_quit(quit);
         }
         hotkey_settings

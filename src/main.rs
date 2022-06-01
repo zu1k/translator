@@ -6,8 +6,8 @@ extern crate lazy_static;
 
 mod font;
 mod hotkey;
-pub mod ui;
 use config::Config;
+use eframe;
 pub use hotkey::{ctrl_c, HotkeySetting};
 use log::*;
 use std::{
@@ -15,6 +15,8 @@ use std::{
     sync::{mpsc, RwLock},
     thread,
 };
+
+pub mod ui;
 
 lazy_static! {
     pub static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
@@ -82,6 +84,11 @@ cfg_if::cfg_if! {
                 }
             });
 
+            let api = {
+                let settings = SETTINGS.read().unwrap();
+                settings.get_string("api").unwrap_or("https://deepl.deno.dev/translate".to_string());
+            };
+
             loop {
                 match rx.recv() {
                     Ok(text) => {
@@ -91,10 +98,10 @@ cfg_if::cfg_if! {
                         let event_tx_trasnlate = event_tx.clone();
                         thread::spawn(move || {
                             while let Ok((text, target_lang, source_lang)) = task_rx.recv() {
-                                let _ = match deepl::translate(text, target_lang, source_lang) {
+                                let _ = match deepl::translate(&api, text, target_lang, source_lang) {
                                     Ok(text) => event_tx_trasnlate.send(ui::Event::TextSet(text)),
                                     Err(_err) => event_tx_trasnlate
-                                        .send(ui::Event::TextSet("翻译接口失效，请更新最新版".into())),
+                                        .send(ui::Event::TextSet("翻译接口失效，请更换".into())),
                                 };
                             }
                         });
@@ -137,11 +144,17 @@ cfg_if::cfg_if! {
     } else {
         fn run() {
             {
-                let mut settings = SETTINGS.write().unwrap();
-                if let Err(err) = settings.merge(config::File::with_name("/etc/copy-translator/settings")) {
-                    warn!("settings merge failed, use default settings, err: {}", err);
+                let builder = Config::builder().add_source(config::File::with_name("/etc/copy-translator/settings"));
+                match builder.build() {
+                    Ok(config) => *SETTINGS.write().unwrap() = config,
+                    Err(err) => warn!("settings merge failed, use default settings, err: {}", err),
                 }
             }
+
+            let api = {
+                let settings = SETTINGS.read().unwrap();
+                settings.get_string("api").unwrap_or("https://deepl.deno.dev/translate".to_string())
+            };
 
             let (width, height) = {
                 let settings = SETTINGS.read().unwrap();
@@ -156,10 +169,10 @@ cfg_if::cfg_if! {
             let event_tx_trasnlate = event_tx.clone();
             thread::spawn(move || {
                 while let Ok((text, target_lang, source_lang)) = task_rx.recv() {
-                    let _ = match deepl::translate(text, target_lang, source_lang) {
+                    let _ = match deepl::translate(&api, text, target_lang, source_lang) {
                         Ok(text) => event_tx_trasnlate.try_send(ui::Event::TextSet(text)),
                         Err(_err) => {
-                            event_tx_trasnlate.try_send(ui::Event::TextSet("翻译接口失效，请更新最新版".into()))
+                            event_tx_trasnlate.try_send(ui::Event::TextSet("翻译接口失效，请更换".into()))
                         }
                     };
                 }
@@ -199,14 +212,12 @@ cfg_if::cfg_if! {
             let ioc_buf = Cursor::new(include_bytes!("../res/copy-translator.ico"));
             let icon_dir = ico::IconDir::read(ioc_buf).unwrap();
             let image = icon_dir.entries()[5].decode().unwrap();
-            let ico_data = epi::IconData {
+            let ico_data = eframe::IconData {
                 rgba: std::vec::Vec::from(image.rgba_data()),
                 width: image.width(),
                 height: image.height(),
             };
 
-            let app = ui::MyApp::new(text, event_rx, task_tx);
-            let app = Box::new(app);
             let native_options = eframe::NativeOptions {
                 always_on_top: true,
                 decorated: false,
@@ -215,7 +226,7 @@ cfg_if::cfg_if! {
                 drag_and_drop_support: true,
                 ..Default::default()
             };
-            eframe::run_native(app, native_options);
+            eframe::run_native("Copy Translator", native_options, Box::new(|cc| Box::new(ui::MyApp::new(text, event_rx, task_tx, cc))));
         }
     }
 }
