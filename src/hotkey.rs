@@ -3,7 +3,7 @@ use enigo::{Enigo, Key, KeyboardControllable};
 use std::{thread, time::Duration};
 
 #[cfg(target_os = "windows")]
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::SyncSender;
 #[cfg(target_os = "windows")]
 use tauri_hotkey::{parse_hotkey, HotkeyManager};
 
@@ -18,7 +18,7 @@ pub struct HotkeySetting {
 impl Default for HotkeySetting {
     fn default() -> Self {
         let mut hotkey_settings = Self {
-            launch: "CMDORCTRL+Q".to_string(),
+            launch: "ALT+Q".to_string(),
             quit: "CMDORCTRL+SHIFT+D".to_string(),
 
             #[cfg(target_os = "windows")]
@@ -45,7 +45,7 @@ impl HotkeySetting {
     }
 
     #[cfg(target_os = "windows")]
-    pub fn register_hotkey(&mut self, tx: Sender<String>) {
+    pub fn register_hotkey(&mut self, launch_tx: SyncSender<()>) {
         let hk_mng = &mut self.hk_mng;
 
         // quit
@@ -56,13 +56,8 @@ impl HotkeySetting {
         }
 
         // launch
-        let tx_d = tx;
         if let Err(err) = hk_mng.register(parse_hotkey(self.launch.as_str()).unwrap(), move || {
-            if let Some(text) = ctrl_c() {
-                if let Err(err) = tx_d.send(text) {
-                    panic!("{:?}", err)
-                }
-            }
+            launch_tx.send(()).ok();
         }) {
             panic!("{:?}", err)
         }

@@ -8,8 +8,21 @@ lazy_static! {
 }
 
 pub fn init_config() {
+    #[cfg(not(target_os = "windows"))]
+    let settings_path = std::path::PathBuf::from("/etc/copy-translator/settings");
+
+    #[cfg(target_os = "windows")]
+    let settings_path = {
+        std::env::current_exe()
+            .map(|path| match path.parent() {
+                Some(parent) => parent.join("settings"),
+                None => std::path::PathBuf::from("settings"),
+            })
+            .unwrap_or(std::path::PathBuf::from("settings"))
+    };
+
     let builder =
-        Config::builder().add_source(config::File::with_name("/etc/copy-translator/settings"));
+        Config::builder().add_source(config::File::with_name(settings_path.to_str().unwrap()));
     match builder.build() {
         Ok(config) => *SETTINGS.lock().unwrap() = config,
         Err(err) => warn!("settings merge failed, use default settings, err: {}", err),

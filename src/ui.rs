@@ -1,18 +1,27 @@
 use crate::{cfg::get_theme, font};
-use deepl;
 use egui::{self, epaint::Color32};
-use std::sync::{mpsc, Arc, Mutex};
+use std::{
+    io::Cursor,
+    sync::{mpsc, Arc, Mutex},
+};
 
 #[cfg(target_os = "windows")]
-use crate::HotkeySetting;
+use crate::hotkey::HotkeySetting;
 #[cfg(target_os = "windows")]
 use std::sync::mpsc::Receiver;
 
+pub const LINK_COLOR_DOING: Color32 = Color32::GREEN;
+pub const LINK_COLOR_COMMON: Color32 = Color32::GRAY;
+
+pub struct State {
+    pub text: String,
+    pub source_lang: deepl::Lang,
+    pub target_lang: deepl::Lang,
+    pub link_color: Color32,
+}
+
 pub struct MyApp {
-    text: Arc<Mutex<String>>,
-    source_lang: Arc<Mutex<deepl::Lang>>,
-    target_lang: Arc<Mutex<deepl::Lang>>,
-    link_color: Arc<Mutex<Color32>>,
+    state: Arc<Mutex<State>>,
 
     lang_list_with_auto: Vec<deepl::Lang>,
     lang_list: Vec<deepl::Lang>,
@@ -22,15 +31,13 @@ pub struct MyApp {
     #[cfg(target_os = "windows")]
     hk_setting: HotkeySetting,
     #[cfg(target_os = "windows")]
-    rx_this: Receiver<String>,
+    hotkey_rx: Receiver<()>,
 }
 
 impl MyApp {
     pub fn new(
-        text: Arc<Mutex<String>>,
-        source_lang: Arc<Mutex<deepl::Lang>>,
-        target_lang: Arc<Mutex<deepl::Lang>>,
-        link_color: Arc<Mutex<Color32>>,
+        state: Arc<Mutex<State>>,
+
         task_chan: mpsc::SyncSender<()>,
         cc: &eframe::CreationContext<'_>,
     ) -> Self {
@@ -42,17 +49,14 @@ impl MyApp {
         }
 
         #[cfg(target_os = "windows")]
-        let (tx, rx) = mpsc::channel();
+        let (hotkey_tx, hotkey_rx) = mpsc::sync_channel(1);
         #[cfg(target_os = "windows")]
         let mut hk_setting = HotkeySetting::default();
         #[cfg(target_os = "windows")]
-        hk_setting.register_hotkey(tx);
+        hk_setting.register_hotkey(hotkey_tx);
 
         Self {
-            text,
-            source_lang,
-            target_lang,
-            link_color,
+            state,
 
             lang_list_with_auto: deepl::Lang::lang_list_with_auto(),
             lang_list: deepl::Lang::lang_list(),
@@ -62,7 +66,7 @@ impl MyApp {
             #[cfg(target_os = "windows")]
             hk_setting,
             #[cfg(target_os = "windows")]
-            rx_this: rx,
+            hotkey_rx,
         }
     }
 }
@@ -70,22 +74,22 @@ impl MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let Self {
-            text,
-            source_lang,
-            target_lang,
-            link_color,
+            state,
 
             lang_list_with_auto,
             lang_list,
             task_chan,
             show_box,
+
             #[cfg(target_os = "windows")]
             hk_setting,
             #[cfg(target_os = "windows")]
-            rx_this,
+            hotkey_rx,
         } = self;
-        let mut old_source_lang = *source_lang.lock().unwrap();
-        let mut old_target_lang = *target_lang.lock().unwrap();
+        let mut state = state.lock().unwrap();
+
+        let old_source_lang = state.source_lang;
+        let old_target_lang = state.target_lang;
 
         if ctx.input().key_pressed(egui::Key::Escape) {
             #[cfg(target_os = "windows")]
@@ -94,10 +98,8 @@ impl eframe::App for MyApp {
         }
 
         #[cfg(target_os = "windows")]
-        if let Ok(text_new) = rx_this.try_recv() {
-            *text = text_new.clone();
-            *link_color = LINK_COLOR_DOING;
-            let _ = task_chan.send((text_new, *target_lang, *source_lang));
+        if let Ok(_) = hotkey_rx.try_recv() {
+            let _ = task_chan.send(());
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -105,33 +107,33 @@ impl eframe::App for MyApp {
                 ui.horizontal_top(|ui| {
                     let combobox_width = 145.0;
                     egui::ComboBox::from_id_source(egui::Id::new("source_lang_ComboBox"))
-                        .selected_text(old_source_lang.description())
+                        .selected_text(state.source_lang.description())
                         .width(combobox_width)
                         .show_ui(ui, |ui| {
                             for i in lang_list_with_auto {
                                 let i = i.to_owned();
-                                ui.selectable_value(&mut old_source_lang, i, i.description());
+                                ui.selectable_value(&mut state.source_lang, i, i.description());
                             }
                         });
 
                     if ui.add(egui::Button::new(" ⇌ ").frame(false)).clicked() {
-                        let tmp_target_lang = old_target_lang.clone();
-                        let tmp_source_lang = old_source_lang.clone();
-                        old_target_lang = if tmp_source_lang == deepl::Lang::Auto {
+                        let tmp_target_lang = state.target_lang;
+                        let tmp_source_lang = state.source_lang;
+                        state.target_lang = if tmp_source_lang == deepl::Lang::Auto {
                             deepl::Lang::EN
                         } else {
                             tmp_source_lang
                         };
-                        old_source_lang = tmp_target_lang;
+                        state.source_lang = tmp_target_lang;
                     };
 
                     egui::ComboBox::from_id_source(egui::Id::new("target_lang_ComboBox"))
-                        .selected_text(old_target_lang.description())
+                        .selected_text(state.target_lang.description())
                         .width(combobox_width)
                         .show_ui(ui, |ui| {
                             for i in lang_list {
                                 let i = i.to_owned();
-                                ui.selectable_value(&mut old_target_lang, i, i.description());
+                                ui.selectable_value(&mut state.target_lang, i, i.description());
                             }
                         });
                     if ui.add(egui::Button::new("翻译")).clicked() {
@@ -140,7 +142,7 @@ impl eframe::App for MyApp {
 
                     ui.horizontal_wrapped(|ui| {
                         ui.with_layout(egui::Layout::right_to_left(), |ui| {
-                            ui.visuals_mut().hyperlink_color = *link_color.lock().unwrap();
+                            ui.visuals_mut().hyperlink_color = state.link_color;
                             ui.hyperlink_to(
                                 egui::special_emojis::GITHUB.to_string(),
                                 "https://github.com/zu1k/copy-translator",
@@ -166,7 +168,7 @@ impl eframe::App for MyApp {
                     .auto_shrink([false; 2])
                     .show(ui, |ui| {
                         ui.add(
-                            egui::TextEdit::multiline(&mut *text.lock().unwrap())
+                            egui::TextEdit::multiline(&mut state.text)
                                 .desired_width(2000.0)
                                 .desired_rows(7)
                                 .frame(false)
@@ -176,20 +178,24 @@ impl eframe::App for MyApp {
             });
         });
 
-        {
-            let mut source_lang = source_lang.lock().unwrap();
-            let mut target_lang = target_lang.lock().unwrap();
-
-            if *source_lang != old_source_lang || *target_lang != old_target_lang {
-                *source_lang = old_source_lang;
-                *target_lang = old_target_lang;
-                let _ = task_chan.send(());
-            };
-        }
+        if state.source_lang != old_source_lang || state.target_lang != old_target_lang {
+            let _ = task_chan.send(());
+        };
 
         ctx.request_repaint();
 
         #[cfg(windows)]
         frame.set_window_size(ctx.used_size());
+    }
+}
+
+pub fn get_icon_data() -> eframe::IconData {
+    let ioc_buf = Cursor::new(include_bytes!("../res/copy-translator.ico"));
+    let icon_dir = ico::IconDir::read(ioc_buf).unwrap();
+    let image = icon_dir.entries()[5].decode().unwrap();
+    eframe::IconData {
+        rgba: std::vec::Vec::from(image.rgba_data()),
+        width: image.width(),
+        height: image.height(),
     }
 }

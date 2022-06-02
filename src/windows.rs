@@ -1,130 +1,170 @@
-pub fn run() {
-    if let Ok(path) = std::env::current_exe() {
-        let settings_path = match path.parent() {
-            Some(parent) => parent.join("settings"),
-            None => std::path::PathBuf::from("settings"),
-        };
+use eframe::{App, CreationContext};
+use log::warn;
+use std::{
+    sync::{mpsc, Arc, Mutex},
+    thread::{self, sleep},
+    time::Duration,
+};
 
-        let builder =
-            Config::builder().add_source(config::File::with_name(settings_path.to_str().unwrap()));
-        match builder.build() {
-            Ok(config) => *SETTINGS.lock().unwrap() = config,
-            Err(err) => warn!("settings merge failed, use default settings, err: {}", err),
+use crate::{
+    cfg::{get_api, get_window_size, init_config},
+    hotkey::{ctrl_c, HotkeySetting},
+    mouse::MouseState,
+    ui::{self, get_icon_data, State, LINK_COLOR_COMMON, LINK_COLOR_DOING},
+};
+
+pub fn setup_ui_task(cc: &CreationContext) -> Box<dyn App> {
+    let ctx = cc.egui_ctx.clone();
+    let (task_tx, task_rx) = mpsc::sync_channel(1);
+
+    let state = Arc::new(Mutex::new(State {
+        text: "请选中需要翻译的文字触发划词翻译".to_string(),
+        source_lang: deepl::Lang::Auto,
+        target_lang: deepl::Lang::ZH,
+        link_color: LINK_COLOR_COMMON,
+    }));
+
+    // 监听鼠标动作
+    {
+        let state = state.clone();
+        let mouse_state = Arc::new(Mutex::new(MouseState::new()));
+
+        {
+            let mouse_state = mouse_state.clone();
+            thread::spawn(move || {
+                if let Err(err) = rdev::listen(move |event| {
+                    match event.event_type {
+                        rdev::EventType::ButtonPress(button) => {
+                            if button == rdev::Button::Left {
+                                mouse_state.lock().unwrap().down();
+                            }
+                        }
+                        rdev::EventType::ButtonRelease(button) => {
+                            if button == rdev::Button::Left {
+                                mouse_state.lock().unwrap().release()
+                            }
+                        }
+                        rdev::EventType::MouseMove { x: _, y: _ } => {
+                            mouse_state.lock().unwrap().moving()
+                        }
+                        _ => {}
+                    };
+                }) {
+                    warn!("rdev listen error: {:?}", err)
+                }
+            });
+        }
+
+        {
+            thread::spawn(move || {
+                let mut clipboard_last = "".to_string();
+                loop {
+                    if mouse_state.lock().unwrap().is_select() && !ctx.input().pointer.has_pointer()
+                    {
+                        if let Some(text_new) = ctrl_c() {
+                            if text_new != clipboard_last {
+                                clipboard_last = text_new.clone();
+                                // 新翻译任务 UI
+                                {
+                                    let mut state = state.lock().unwrap();
+                                    state.text = text_new.clone();
+                                    state.link_color = LINK_COLOR_DOING;
+                                }
+
+                                // 开始翻译
+                                let result = {
+                                    let (source_lang, target_lang) = {
+                                        let state = state.lock().unwrap();
+                                        (state.source_lang, state.target_lang)
+                                    };
+                                    deepl::translate(&get_api(), text_new, target_lang, source_lang)
+                                        .unwrap_or("翻译接口失效，请更换".to_string())
+                                };
+
+                                // 翻译结束 UI
+                                {
+                                    let mut state = state.lock().unwrap();
+                                    state.text = result;
+                                    state.link_color = LINK_COLOR_COMMON;
+                                }
+                            }
+                        }
+                    }
+                    sleep(Duration::from_millis(100));
+                }
+            });
         }
     }
 
-    let api = {
-        let settings = SETTINGS.lock().unwrap();
-        settings
-            .get_string("api")
-            .unwrap_or("https://deepl.deno.dev/translate".to_string())
-    };
+    // 监听翻译按钮触发
+    {
+        let state = state.clone();
+        thread::spawn(move || {
+            loop {
+                task_rx.recv().ok();
+                {
+                    // 新翻译任务 UI
+                    {
+                        let mut state = state.lock().unwrap();
+                        state.link_color = LINK_COLOR_DOING;
+                    }
 
-    let (width, height) = {
-        let settings = SETTINGS.lock().unwrap();
-        (
-            settings.get_float("window.size.width").unwrap_or(500.0) as f32,
-            settings.get_float("window.size.height").unwrap_or(200.0) as f32,
-        )
-    };
+                    // 开始翻译
+                    let result = {
+                        let (text, source_lang, target_lang) = {
+                            let state = state.lock().unwrap();
+                            (state.text.clone(), state.source_lang, state.target_lang)
+                        };
+                        deepl::translate(&get_api(), text, target_lang, source_lang)
+                            .unwrap_or("翻译接口失效，请更换".to_string())
+                    };
 
-    let (tx_hk, rx) = mpsc::channel();
+                    // 翻译结束 UI
+                    {
+                        let mut state = state.lock().unwrap();
+                        state.text = result;
+                        state.link_color = LINK_COLOR_COMMON;
+                    }
+                }
+            }
+        });
+    }
+
+    Box::new(ui::MyApp::new(state, task_tx, cc))
+}
+
+pub fn run() {
+    init_config();
+
+    let (hotkey_tx, hotkey_rx) = mpsc::sync_channel(1);
 
     let mut hotkey_settings = HotkeySetting::default();
-    hotkey_settings.register_hotkey(tx_hk.clone());
-
-    // embed ico file
-    let ioc_buf = Cursor::new(include_bytes!("../res/copy-translator.ico"));
-    let icon_dir = ico::IconDir::read(ioc_buf).unwrap();
-    let image = icon_dir.entries()[5].decode().unwrap();
-    let ico_data = eframe::IconData {
-        rgba: std::vec::Vec::from(image.rgba_data()),
-        width: image.width(),
-        height: image.height(),
-    };
-
-    // listen for global mouse event
-    let (rdev_tx, rdev_rx) = mpsc::sync_channel(1);
-    let mouse_event_rx_wrap = std::sync::Arc::new(std::sync::Mutex::new(rdev_rx));
-    thread::spawn(move || {
-        // let last_move =
-        if let Err(error) = rdev::listen(move |event| {
-            match event.event_type {
-                rdev::EventType::ButtonPress(button) => {
-                    if button == rdev::Button::Left {
-                        let _ = rdev_tx.try_send(ui::Event::MouseEvent(event.event_type));
-                    }
-                }
-                rdev::EventType::ButtonRelease(button) => {
-                    if button == rdev::Button::Left {
-                        let _ = rdev_tx.try_send(ui::Event::MouseEvent(event.event_type));
-                    }
-                }
-                rdev::EventType::MouseMove { x: _, y: _ } => {
-                    let _ = rdev_tx.try_send(ui::Event::MouseEvent(event.event_type));
-                }
-                _ => {}
-            };
-        }) {
-            warn!("rdev listen error: {:?}", error)
-        }
-    });
+    hotkey_settings.register_hotkey(hotkey_tx.clone());
 
     loop {
-        match rx.recv() {
-            Ok(text) => {
-                let (event_tx, event_rx) = mpsc::sync_channel(1);
-                let (task_tx, task_rx) = mpsc::sync_channel(1);
-
-                let event_tx_trasnlate = event_tx.clone();
-                let api = api.clone();
-
-                thread::spawn(move || {
-                    while let Ok((text, target_lang, source_lang)) = task_rx.recv() {
-                        let _ = match deepl::translate(&api, text, target_lang, source_lang) {
-                            Ok(text) => event_tx_trasnlate.send(ui::Event::TextSet(text)),
-                            Err(_err) => event_tx_trasnlate
-                                .send(ui::Event::TextSet("翻译接口失效，请更换".into())),
-                        };
-                    }
-                });
-
-                let mouse_event_rx = mouse_event_rx_wrap.clone();
-                let event_tx_mouse = event_tx.clone();
-                thread::spawn(move || {
-                    loop {
-                        let rx = mouse_event_rx.lock().unwrap();
-                        match rx.recv() {
-                            Ok(event) => {
-                                if event_tx_mouse.send(event).is_err() {
-                                    break;
-                                }
-                            }
-                            Err(_) => break,
-                        }
-                    }
-                });
+        match hotkey_rx.recv() {
+            Ok(_) => {
                 hotkey_settings.unregister_all();
-                let native_options = eframe::NativeOptions {
-                    always_on_top: true,
-                    decorated: false,
-                    initial_window_size: Some(egui::vec2(width, height)),
-                    icon_data: Some(ico_data.clone()),
-                    drag_and_drop_support: true,
-                    ..Default::default()
-                };
-                thread::spawn(|| {
-                    eframe::run_native(
-                        "Copy Translator",
-                        native_options,
-                        Box::new(|cc| Box::new(ui::MyApp::new(text, event_rx, task_tx, cc))),
-                    );
-                });
-                hotkey_settings.register_hotkey(tx_hk.clone());
+                launch_window();
+                hotkey_settings.register_hotkey(hotkey_tx.clone());
             }
             Err(err) => {
                 panic!("{}", err)
             }
         }
     }
+}
+
+fn launch_window() {
+    let (width, height) = get_window_size();
+
+    let native_options = eframe::NativeOptions {
+        always_on_top: true,
+        decorated: false,
+        initial_window_size: Some(egui::vec2(width, height)),
+        icon_data: Some(get_icon_data()),
+        drag_and_drop_support: true,
+        ..Default::default()
+    };
+    eframe::run_native("Copy Translator", native_options, Box::new(setup_ui_task));
 }

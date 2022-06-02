@@ -1,5 +1,4 @@
-#![windows_subsystem = "windows"]
-#![cfg_attr(not(debug_assertions), deny(warnings))]
+#![cfg_attr(not(debug_assertions), deny(warnings), windows_subsystem = "windows")]
 
 #[macro_use]
 extern crate lazy_static;
