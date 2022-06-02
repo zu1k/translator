@@ -7,7 +7,7 @@ build = "build.rs"
 [profile.release]
 strip = true
 lto = true
-opt-level = "z"
+opt-level = "s"
 codegen-units = 1
 
 [dependencies]
@@ -27,6 +27,7 @@ tauri-hotkey = "0.1"
 copypasta = "0.7"
 ico = "0.1"
 rdev = "0.5"
+poll-promise = "0.1"
 
 [build-dependencies]
 winres = "0.1"

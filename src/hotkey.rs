@@ -1,11 +1,17 @@
-use crate::SETTINGS;
+use crate::cfg::SETTINGS;
 use enigo::{Enigo, Key, KeyboardControllable};
-use std::{sync::mpsc::Sender, thread, time::Duration};
+use std::{thread, time::Duration};
+
+#[cfg(target_os = "windows")]
+use std::sync::mpsc::Sender;
+#[cfg(target_os = "windows")]
 use tauri_hotkey::{parse_hotkey, HotkeyManager};
 
 pub struct HotkeySetting {
     launch: String,
     quit: String,
+
+    #[cfg(target_os = "windows")]
     hk_mng: HotkeyManager,
 }
 
@@ -14,9 +20,11 @@ impl Default for HotkeySetting {
         let mut hotkey_settings = Self {
             launch: "CMDORCTRL+Q".to_string(),
             quit: "CMDORCTRL+SHIFT+D".to_string(),
+
+            #[cfg(target_os = "windows")]
             hk_mng: HotkeyManager::new(),
         };
-        let settings = SETTINGS.read().unwrap();
+        let settings = SETTINGS.lock().unwrap();
         if let Ok(launch) = settings.get_string("hotkey.launch") {
             hotkey_settings.set_launch(launch);
         }
@@ -36,6 +44,7 @@ impl HotkeySetting {
         self.quit = s;
     }
 
+    #[cfg(target_os = "windows")]
     pub fn register_hotkey(&mut self, tx: Sender<String>) {
         let hk_mng = &mut self.hk_mng;
 
@@ -59,6 +68,7 @@ impl HotkeySetting {
         }
     }
 
+    #[cfg(target_os = "windows")]
     pub fn unregister_all(&mut self) {
         let _ = self.hk_mng.unregister_all();
     }

@@ -1,7 +1,8 @@
-use crate::SETTINGS;
 use eframe::egui::{self, FontDefinitions, FontFamily, TextStyle};
 use egui::{FontData, FontId};
 use FontFamily::{Monospace, Proportional};
+
+use crate::cfg::SETTINGS;
 
 pub fn install_fonts(egui_ctx: &egui::Context) {
     let mut fonts = FontDefinitions::default();
@@ -23,7 +24,7 @@ pub fn install_fonts(egui_ctx: &egui::Context) {
     egui_ctx.set_fonts(fonts);
 
     let font_size_plus = {
-        let settings = SETTINGS.read().unwrap();
+        let settings = SETTINGS.lock().unwrap();
         settings.get_float("window.font_size_plus").unwrap_or(0.0) as f32
     };
 
