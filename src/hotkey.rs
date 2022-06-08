@@ -1,4 +1,5 @@
 use crate::cfg::SETTINGS;
+use clipboard::{ClipboardContext, ClipboardProvider};
 use enigo::{Enigo, Key, KeyboardControllable};
 use std::{thread, time::Duration};
 
@@ -75,7 +76,9 @@ pub fn ctrl_c() -> Option<String> {
     enigo.key_click(Key::Layout('c'));
     enigo.key_up(Key::Control);
     thread::sleep(Duration::from_millis(200));
-    if let Ok(text) = cli_clipboard::get_contents() {
+
+    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+    if let Ok(text) = ctx.get_contents() {
         Some(text)
     } else {
         None
