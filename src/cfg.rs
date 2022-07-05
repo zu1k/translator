@@ -33,7 +33,7 @@ pub fn get_api() -> String {
     let settings = SETTINGS.lock().unwrap();
     settings
         .get_string("api")
-        .unwrap_or("https://deepl.deno.dev/translate".to_string())
+        .unwrap_or("https://deepl.zu1k.com/translate".to_string())
 }
 
 pub fn get_window_size() -> (f32, f32) {

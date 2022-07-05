@@ -1,4 +1,4 @@
-api = "https://deepl.deno.dev/translate"
+api = "https://deepl.zu1k.com/translate"
 
 [window]
 # 字体放大，设置为负数就缩小
