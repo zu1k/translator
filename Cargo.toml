@@ -15,7 +15,7 @@ clipboard = "0.5"
 cfg-if = "1"
 config = "0.13"
 deepl = { package = "deepl-api-client", version = "0.2" }
-eframe = "0.18"
+eframe = "0.19"
 egui = "0.18"
 egui_glium = "0.18"
 enigo = "0"
