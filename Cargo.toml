@@ -17,7 +17,7 @@ config = "0.13"
 deepl = { package = "deepl-api-client", version = "0.2" }
 eframe = "0.18"
 egui = "0.18"
-egui_glium = "0.18"
+egui_glium = "0.19"
 enigo = "0"
 glium = "0.31"
 lazy_static = "1.4"
