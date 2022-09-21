@@ -1,6 +1,6 @@
 use crate::cfg::SETTINGS;
 use clipboard::{ClipboardContext, ClipboardProvider};
-use enigo::{Enigo, Key, KeyboardControllable};
+use rdev::{simulate, EventType, Key};
 use std::{thread, time::Duration};
 
 #[cfg(target_os = "windows")]
@@ -66,15 +66,16 @@ impl HotkeySetting {
 
     #[cfg(target_os = "windows")]
     pub fn unregister_all(&mut self) {
-        let _ = self.hk_mng.unregister_all();
+        _ = self.hk_mng.unregister_all();
     }
 }
 
 pub fn ctrl_c() -> Option<String> {
-    let mut enigo = Enigo::new();
-    enigo.key_down(Key::Control);
-    enigo.key_click(Key::Layout('c'));
-    enigo.key_up(Key::Control);
+    _ = simulate(&EventType::KeyPress(Key::ControlLeft));
+    _ = simulate(&EventType::KeyPress(Key::KeyC));
+    _ = simulate(&EventType::KeyRelease(Key::KeyC));
+    _ = simulate(&EventType::KeyRelease(Key::ControlLeft));
+
     thread::sleep(Duration::from_millis(200));
 
     let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();

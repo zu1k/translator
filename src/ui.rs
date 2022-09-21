@@ -94,12 +94,12 @@ impl eframe::App for MyApp {
         if ctx.input().key_pressed(egui::Key::Escape) {
             #[cfg(target_os = "windows")]
             hk_setting.unregister_all();
-            frame.quit()
+            frame.close()
         }
 
         #[cfg(target_os = "windows")]
         if let Ok(_) = hotkey_rx.try_recv() {
-            let _ = task_chan.send(());
+            _ = task_chan.send(());
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -137,11 +137,11 @@ impl eframe::App for MyApp {
                             }
                         });
                     if ui.add(egui::Button::new("翻译")).clicked() {
-                        let _ = task_chan.send(());
+                        _ = task_chan.send(());
                     };
 
                     ui.horizontal_wrapped(|ui| {
-                        ui.with_layout(egui::Layout::right_to_left(), |ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.visuals_mut().hyperlink_color = state.link_color;
                             ui.hyperlink_to(
                                 egui::special_emojis::GITHUB.to_string(),
@@ -179,7 +179,7 @@ impl eframe::App for MyApp {
         });
 
         if state.source_lang != old_source_lang || state.target_lang != old_target_lang {
-            let _ = task_chan.send(());
+            _ = task_chan.send(());
         };
 
         ctx.request_repaint();

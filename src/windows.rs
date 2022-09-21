@@ -163,7 +163,7 @@ fn launch_window() {
         decorated: false,
         initial_window_size: Some(egui::vec2(width, height)),
         icon_data: Some(get_icon_data()),
-        drag_and_drop_support: true,
+        run_and_return: true,
         ..Default::default()
     };
     eframe::run_native("Copy Translator", native_options, Box::new(setup_ui_task));

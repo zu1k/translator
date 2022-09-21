@@ -1,4 +1,4 @@
-api = "https://deepl.zu1k.com/translate"
+api = "https://deepl.deno.dev/translate"
 
 [window]
 # 字体放大，设置为负数就缩小
@@ -11,5 +11,5 @@ width = 700
 height = 300
 
 [hotkey]
-launch = "CTRL+Q"
+launch = "ALT+Q"
 quit = "CTRL+SHIFT+D"
