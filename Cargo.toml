@@ -1,6 +1,6 @@
 [package]
 name = "copy-translator"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 build = "build.rs"
 
@@ -11,21 +11,17 @@ opt-level = "s"
 codegen-units = 1
 
 [dependencies]
-clipboard = "0.5"
+cli-clipboard = "0.2"
 cfg-if = "1"
 config = "0.13"
 deepl = { package = "deepl-api-client", version = "0.2" }
 eframe = "0.19"
 egui = "0.19"
-egui_glium = "0.19"
-glium = "0.32"
 lazy_static = "1.4"
 log = "0.4"
-piet-common = "0.5"
-tauri-hotkey = { git = "https://github.com/zu1k/tauri-hotkey-rs.git" }
 ico = "0.1"
-rdev = { git = "https://github.com/asur4s/rdev" }
-poll-promise = "0.1"
+rdev = { git = "https://github.com/asur4s/rdev", branch = "master" }
+tauri-hotkey = { git = "https://github.com/zu1k/tauri-hotkey-rs", branch = "master" }
 
 [build-dependencies]
 winres = "0.1"
@@ -34,5 +30,5 @@ winres = "0.1"
 OriginalFilename = "copy-translator.exe"
 LegalCopyright = "Copyright © 2021-2022 zu1k"
 ProductName = "CopyTranslator"
-ProductVersion = "0.4.0"
+ProductVersion = "0.4.1"
 FileDescription = "CopyTranslator: 简单、轻量、好用的划词翻译软件"

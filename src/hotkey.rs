@@ -1,5 +1,5 @@
 use crate::cfg::SETTINGS;
-use clipboard::{ClipboardContext, ClipboardProvider};
+use cli_clipboard::{ClipboardContext, ClipboardProvider};
 use rdev::{simulate, EventType, Key};
 use std::{thread, time::Duration};
 
