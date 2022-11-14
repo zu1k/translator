@@ -19,7 +19,7 @@ eframe = "0.19"
 egui = "0.19"
 lazy_static = "1.4"
 log = "0.4"
-ico = "0.1"
+ico = "0.2"
 rdev = { git = "https://github.com/asur4s/rdev", branch = "master" }
 tauri-hotkey = { git = "https://github.com/zu1k/tauri-hotkey-rs", branch = "master" }
 
