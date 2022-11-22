@@ -145,7 +145,7 @@ impl eframe::App for MyApp {
                             ui.visuals_mut().hyperlink_color = state.link_color;
                             ui.hyperlink_to(
                                 egui::special_emojis::GITHUB.to_string(),
-                                "https://github.com/zu1k/copy-translator",
+                                "https://github.com/zu1k/translator",
                             );
 
                             if ui.add(egui::Button::new("□").frame(false)).clicked() {
@@ -190,9 +190,9 @@ impl eframe::App for MyApp {
 }
 
 pub fn get_icon_data() -> eframe::IconData {
-    let ioc_buf = Cursor::new(include_bytes!("../res/copy-translator.ico"));
+    let ioc_buf = Cursor::new(include_bytes!("../res/translator.ico"));
     let icon_dir = ico::IconDir::read(ioc_buf).unwrap();
-    let image = icon_dir.entries()[5].decode().unwrap();
+    let image = icon_dir.entries()[0].decode().unwrap();
     eframe::IconData {
         rgba: std::vec::Vec::from(image.rgba_data()),
         width: image.width(),

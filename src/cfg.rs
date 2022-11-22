@@ -9,7 +9,7 @@ lazy_static! {
 
 pub fn init_config() {
     #[cfg(not(target_os = "windows"))]
-    let settings_path = std::path::PathBuf::from("/etc/copy-translator/settings");
+    let settings_path = std::path::PathBuf::from("/etc/translator/settings");
 
     #[cfg(target_os = "windows")]
     let settings_path = {

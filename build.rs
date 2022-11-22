@@ -9,7 +9,7 @@ fn main() {
                     .set_windres_path("x86_64-w64-mingw32-windres");
             }
         }
-        res.set_icon("res/copy-translator.ico").set_language(0x04);
+        res.set_icon("res/translator.ico").set_language(0x04);
         res.compile().unwrap();
     }
 }

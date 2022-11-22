@@ -166,5 +166,5 @@ fn launch_window() {
         run_and_return: true,
         ..Default::default()
     };
-    eframe::run_native("Copy Translator", native_options, Box::new(setup_ui_task));
+    eframe::run_native("Translator", native_options, Box::new(setup_ui_task));
 }

@@ -1,6 +1,6 @@
-# Copy Translator
+# Translator
 
-Copy Translator 是使用Rust编写的翻译小工具
+Translator 是使用Rust编写的翻译小工具
 
 ## 特点
 
@@ -18,6 +18,6 @@ Copy Translator 是使用Rust编写的翻译小工具
 
 ## Copyright
 
-**Copy Translator** © [zu1k](https://github.com/zu1k), Copyright reserved.<br>
+**Translator** © [zu1k](https://github.com/zu1k), Copyright reserved.<br>
 
 > Blog [zu1k.com](https://zu1k.com) · GitHub [@zu1k](https://github.com/zu1k) · Twitter [@zu1k_lv](https://twitter.com/zu1k_lv) · Telegram Channel [@peekfun](https://t.me/peekfun)

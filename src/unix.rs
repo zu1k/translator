@@ -186,5 +186,5 @@ pub fn run() {
         drag_and_drop_support: true,
         ..Default::default()
     };
-    eframe::run_native("Copy Translator", native_options, Box::new(setup_ui_task));
+    eframe::run_native("Translator", native_options, Box::new(setup_ui_task));
 }

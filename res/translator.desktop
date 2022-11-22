@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Translator
+Comment=Translator
+GenericName=Translator
+Keywords=Translator;
+Exec=translator
+Icon=/usr/share/pixmaps/translator.ico
+Terminal=false
+Type=Application
+Categories=Utility;
