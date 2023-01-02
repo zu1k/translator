@@ -19,7 +19,7 @@ eframe = "0.19"
 egui = "0.19"
 lazy_static = "1.4"
 log = "0.4"
-ico = "0.2"
+ico = "0.3"
 rdev = "0.5"
 tauri-hotkey = { git = "https://github.com/zu1k/tauri-hotkey-rs", branch = "master" }
 
